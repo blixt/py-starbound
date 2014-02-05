@@ -1,22 +1,11 @@
 import bisect
 import io
+import sbon
 import struct
 
 
 def read_fixlen_string(stream, length):
     return stream.read(length).rstrip('\x00').decode('utf-8')
-
-def read_varlen_number(stream):
-    """Read while the most significant bit is set, then put the 7 least
-    significant bits of all read bytes together to create a number.
-
-    """
-    value = 0
-    while True:
-        byte = ord(stream.read(1))
-        if not byte & 0b10000000:
-            return value << 7 | byte
-        value = value << 7 | (byte & 0b01111111)
 
 
 class StarBlock(object):
@@ -186,8 +175,7 @@ class StarFile(object):
         num_keys, = struct.unpack('>i', stream.read(4))
         for i in xrange(num_keys):
             cur_key = stream.read(self.key_size)
-            value_length = read_varlen_number(stream)
-            value = stream.read(value_length)
+            value = sbon.read_bytes(stream)
 
             if cur_key == key:
                 return value
