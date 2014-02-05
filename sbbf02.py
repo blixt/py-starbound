@@ -165,9 +165,13 @@ class StarFile(object):
 
     def get(self, key):
         block = self.get_block(self.root_block)
-        while not isinstance(block, StarBlockLeaf):
+
+        # Scan down the B-tree until we reach a leaf.
+        while isinstance(block, StarBlockIndex):
             block_number = block.get_block_for_key(key)
             block = self.get_block(block_number)
+        assert isinstance(block, StarBlockLeaf), 'Did not reach a leaf'
+
         return self.get_leaf_value(block, key)
 
     def get_block(self, block):

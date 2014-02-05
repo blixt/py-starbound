@@ -10,5 +10,5 @@ Trying it
 ---------
 
 It's very barebones right now, but if you put the two `.py` files in the
-Starbound directory and run `test.py`, you'll see information output for
-some SBBF02 files in your Starbound directory.
+Starbound directory and run `python test.py`, you'll see a dump of the
+raw file list that's stored in `assets/packed.pak`.
