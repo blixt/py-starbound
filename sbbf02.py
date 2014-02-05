@@ -103,7 +103,7 @@ class LeafReader(object):
     def read(self, length):
         offset = self._offset
 
-        if offset + length < len(self._leaf.data):
+        if offset + length <= len(self._leaf.data):
             self._offset += length
             return self._leaf.data[offset:offset + length]
 
