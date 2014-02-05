@@ -32,7 +32,7 @@ class StarBlockFreeIndex(StarBlock):
         self.next_free_block = value if value != -1 else None
 
     def __str__(self):
-        return '<FreeIndex, next_free_block={}>'.format(self.next_free_block)
+        return 'FreeIndex(next_free_block={})'.format(self.next_free_block)
 
 class StarBlockIndex(StarBlock):
     SIGNATURE = 'II'
@@ -53,7 +53,7 @@ class StarBlockIndex(StarBlock):
             self.values.append(block)
 
     def __str__(self):
-        return '<Index, level={}, num_keys={}>'.format(self.level, self.num_keys)
+        return 'Index(level={}, num_keys={})'.format(self.level, self.num_keys)
 
     def get_block_for_key(self, key):
         i = bisect.bisect_right(self.keys, key)
@@ -72,7 +72,7 @@ class StarBlockLeaf(StarBlock):
         self.next_block = value if value != -1 else None
 
     def __str__(self):
-        return '<Leaf, next_block={}>'.format(self.next_block)
+        return 'Leaf(next_block={})'.format(self.next_block)
 
 
 class LeafReader(object):
@@ -143,9 +143,9 @@ class StarFile(object):
 
     def __str__(self):
         if self.is_open():
-            return '<{}: "{}">'.format(self.path, self.name)
+            return 'open StarboundFile(name="{}", path="{}")'.format(self.name, self.path)
         else:
-            return '<{}: closed>'.format(self.path)
+            return 'closed StarboundFile(path="{}")'.format(self.path)
 
     def close(self):
         assert self._stream, 'File is not open'
@@ -153,6 +153,8 @@ class StarFile(object):
         self._stream = None
 
     def get(self, key):
+        assert len(key) == self.key_size, 'Invalid key length'
+
         block = self.get_block(self.root_block)
 
         # Scan down the B-tree until we reach a leaf.

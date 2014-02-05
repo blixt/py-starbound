@@ -47,6 +47,13 @@ def read_map(stream):
 def read_string(stream):
     return read_bytes(stream).decode('utf-8')
 
+def read_string_list(stream):
+    """Optimized structure that doesn't have a type byte for every item.
+
+    """
+    length = read_varlen_number(stream)
+    return [read_string(stream) for _ in xrange(length)]
+
 def read_varlen_number(stream):
     """Read while the most significant bit is set, then put the 7 least
     significant bits of all read bytes together to create a number.
