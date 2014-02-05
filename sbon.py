@@ -1,3 +1,8 @@
+"""I call Starbound's binary serialization format SBON because it could've been
+BSON, but isn't. :)
+
+"""
+
 import struct
 
 def read_bytes(stream):
