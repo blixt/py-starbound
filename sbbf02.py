@@ -1,143 +1,227 @@
+import bisect
+import io
 import struct
-import sys
 
 
-def read_null_terminated_string(handle):
-    """Super naive implementation..."""
-    value = ''
+def read_fixlen_string(stream, length):
+    return stream.read(length).rstrip('\x00').decode('utf-8')
+
+def read_varlen_number(stream):
+    """Read while the most significant bit is set, then put the 7 least
+    significant bits of all read bytes together to create a number.
+
+    """
+    value = 0
     while True:
-        char = handle.read(1)
-        if char == '\x00':
-            return value
-        value += char
+        byte = ord(stream.read(1))
+        if not byte & 0b10000000:
+            return value << 7 | byte
+        value = value << 7 | (byte & 0b01111111)
 
 
 class StarBlock(object):
     @staticmethod
-    def read_id(data):
-        if data == '\xff\xff\xff\xff':
-            return None
-        return struct.unpack('>I', data)[0]
+    def read(file):
+        signature = file.read(2)
 
-    @staticmethod
-    def create(data):
-        signature = data[:2]
-
-        if signature == 'FF':
-            return StarBlockFreeIndex(data)
-        elif signature == 'II':
-            return StarBlockIndex(data)
-        elif signature == 'LL':
-            return StarBlockLeaf(data)
-        elif signature == '\x00\x00':
+        if signature == '\x00\x00':
             return None
-        else:
-            raise ValueError('Unrecognized block type')
+
+        for block_type in (StarBlockFreeIndex, StarBlockIndex, StarBlockLeaf):
+            if signature == block_type.SIGNATURE:
+                return block_type(file)
+
+        raise ValueError('Unrecognized block type')
 
 class StarBlockFreeIndex(StarBlock):
-    """The root block is always of this type."""
     SIGNATURE = 'FF'
 
-    def __init__(self, data):
-        self.next_id = StarBlock.read_id(data[2:6])
+    __slots__ = ['next_free_block']
+
+    def __init__(self, file):
+        value, = struct.unpack('>i', file.read(4))
+        self.next_free_block = value if value != -1 else None
 
     def __str__(self):
-        return 'StarBlockFreeIndex(next_id={})'.format(self.next_id)
+        return '<FreeIndex, next_free_block={}>'.format(self.next_free_block)
 
 class StarBlockIndex(StarBlock):
     SIGNATURE = 'II'
 
-    def __init__(self, data):
-        self.v1 = struct.unpack('>B', data[2])[0]
-        self.v2 = struct.unpack('>I', data[3:7])[0]
-        self.v3 = struct.unpack('>I', data[7:11])[0]
+    __slots__ = ['keys', 'level', 'num_keys', 'values']
+
+    def __init__(self, file):
+        self.level, self.num_keys, left_block = struct.unpack('>Bii', file.read(9))
+
+        self.keys = []
+        self.values = [left_block]
+
+        for i in xrange(self.num_keys):
+            key = file.read(file.key_size)
+            block, = struct.unpack('>i', file.read(4))
+
+            self.keys.append(key)
+            self.values.append(block)
 
     def __str__(self):
-        return ''
+        return '<Index, level={}, num_keys={}>'.format(self.level, self.num_keys)
+
+    def get_block_for_key(self, key):
+        i = bisect.bisect_right(self.keys, key)
+        return self.values[i]
 
 class StarBlockLeaf(StarBlock):
-    """The blocks that contain actual data."""
     SIGNATURE = 'LL'
 
-    def __init__(self, data):
-        self.next_id = StarBlock.read_id(data[-4:])
-        # TODO: Is it possible to exclude trailing 0x00?
-        self.data = data[2:-4]
+    __slots__ = ['data', 'next_block']
+
+    def __init__(self, file):
+        # Substract 6 for signature and next_block.
+        self.data = file.read(file.block_size - 6)
+
+        value, = struct.unpack('>i', file.read(4))
+        self.next_block = value if value != -1 else None
+
+    def __str__(self):
+        return '<Leaf, next_block={}>'.format(self.next_block)
+
+
+class LeafReader(object):
+    """A pseudo-reader that will cross over block boundaries if necessary.
+
+    """
+    __slots__ = ['_file', '_leaf', '_offset']
+
+    def __init__(self, file, leaf):
+        assert isinstance(file, StarFile), 'File is not a StarFile instance'
+        assert isinstance(leaf, StarBlockLeaf), 'Leaf is not a StarBlockLeaf instance'
+
+        self._file = file
+        self._leaf = leaf
+        self._offset = 0
+
+    def read(self, length):
+        offset = self._offset
+
+        if offset + length < len(self._leaf.data):
+            self._offset += length
+            return self._leaf.data[offset:offset + length]
+
+        buffer = io.BytesIO()
+
+        # Exhaust current leaf.
+        num_read = buffer.write(self._leaf.data[offset:])
+        length -= num_read
+
+        # Keep moving onto the next leaf until we have read the desired amount.
+        while length > 0:
+            assert self._leaf.next_block is not None, 'Tried to read too far'
+            self._leaf = self._file.get_block(self._leaf.next_block)
+            assert isinstance(self._leaf, StarBlockLeaf), 'Leaf pointed to non-leaf'
+
+            num_read = buffer.write(self._leaf.data[:length])
+            length -= num_read
+
+        # The new offset will be how much was read from the current leaf.
+        self._offset = num_read
+
+        data = buffer.getvalue()
+        buffer.close()
+
+        return data
 
 
 class StarFile(object):
     def __init__(self, path):
+        self._stream = None
+
         self.path = path
-
         self.name = None
-        self.header_size = None
+
         self.block_size = None
+        self.header_size = None
+        self.key_size = None
 
-        self.root_id = None
-        self.blocks = []
+        self.free_index_block = None
+        self.root_block = None
 
-    def _read_user_header(self, handle):
-        assert handle.read(6) == 'SBBF02', 'Invalid file format'
+    def __enter__(self):
+        return self
 
-        # Size of this header.
-        self.header_size = struct.unpack('>I', handle.read(4))[0]
-        assert self.header_size == 512, 'Unknown header size'
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self.is_open():
+            self.close()
 
-        # Size of all following blocks.
-        self.block_size = struct.unpack('>I', handle.read(4))[0]
-        assert self.block_size in (512, 2048), 'Unknown block size'
+    def __str__(self):
+        if self.is_open():
+            return '<{}: "{}">'.format(self.path, self.name)
+        else:
+            return '<{}: closed>'.format(self.path)
 
-        # Not sure what this byte is.
-        self.unknown = handle.read(1)
-        assert self.unknown in ('\x00', '\x01')
+    def close(self):
+        assert self._stream, 'File is not open'
+        self._stream.close()
+        self._stream = None
 
-        # The id of the root node in the binary tree.
-        self.root_id = struct.unpack('>I', handle.read(4))[0]
+    def get(self, key):
+        block = self.get_block(self.root_block)
+        while not isinstance(block, StarBlockLeaf):
+            block_number = block.get_block_for_key(key)
+            block = self.get_block(block_number)
+        return self.get_leaf_value(block, key)
 
-        # We could seek to byte 32, but let's verify there's no data we haven't parsed.
-        assert handle.read(13) == '\x00' * 13
+    def get_block(self, block):
+        self._stream.seek(self.header_size + self.block_size * block)
+        return StarBlock.read(self)
 
-        # Validate database format header.
-        assert handle.read(8) == 'BTreeDB4', 'Expected binary tree database'
-        assert handle.read(4) == '\x00' * 4
+    def get_leaf_value(self, leaf, key):
+        stream = LeafReader(self, leaf)
+
+        # The number of keys is read on-demand because only leaves pointed to
+        # by an index contain this number (others just contain arbitrary data).
+        num_keys, = struct.unpack('>i', stream.read(4))
+        for i in xrange(num_keys):
+            cur_key = stream.read(self.key_size)
+            value_length = read_varlen_number(stream)
+            value = stream.read(value_length)
+
+            if cur_key == key:
+                return value
+
+        raise KeyError(key)
+
+    def is_open(self):
+        return self._stream is not None
+
+    def open(self):
+        """Opens the file and reads its header data.
+
+        """
+        assert self._stream is None, 'File is already open'
+        stream = open(self.path)
+        self._stream = stream
+
+        assert stream.read(6) == 'SBBF02', 'Invalid file format'
+
+        # Header and block size.
+        self.header_size, self.block_size, self.bool_1, self.free_index_block = struct.unpack('>ii?i', stream.read(13))
+
+        # Skip ahead to content header.
+        stream.seek(32)
+
+        # Require that the format of the content is BTreeDB4.
+        db_format = read_fixlen_string(stream, 12)
+        assert db_format == 'BTreeDB4', 'Expected binary tree database'
 
         # Name of the database.
-        self.name = read_null_terminated_string(handle)
+        self.name = read_fixlen_string(stream, 12)
 
-        # Read remainder of block.
-        handle.read(self.header_size - handle.tell())
+        self.key_size, use_second_value, value_1, value_1_bool, value_2, value_2_bool = struct.unpack('>i?xi?xxxi?', stream.read(19))
 
-    def _read_blocks(self, handle):
-        # TODO: In the future, this should probably start with the root block
-        # work down the tree.
-        while True:
-            data = handle.read(self.block_size)
-            if not data:
-                break
-            assert len(data) == self.block_size, 'Encountered incomplete block'
+        if use_second_value:
+            self.root_block = value_2
+        else:
+            self.root_block = value_1
 
-            try:
-                block = StarBlock.create(data)
-            except Exception, e:
-                raise Exception('Encountered unknown block at block #{} ({})'.format(len(self.blocks), e))
-
-            if block is None:
-                sys.stdout.write('0')
-            else:
-                sys.stdout.write(block.SIGNATURE[0])
-
-            self.blocks.append(block)
-
-    def get_root(self):
-        assert self.root_id is not None, 'No known root'
-        return self.blocks[self.root_id]
-
-    def parse(self):
-        with open(self.path) as handle:
-            self._read_user_header(handle)
-            print '{} ({})'.format(self.name, self.path)
-            print 'Header size: {}   Block size: {}   Root block id: {}'.format(self.header_size, self.block_size, self.root_id)
-            self._read_blocks(handle)
-            print
-            print 'Read {} blocks.'.format(len(self.blocks))
-        return True
+    def read(self, length):
+        return self._stream.read(length)
