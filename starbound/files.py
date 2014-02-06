@@ -1,9 +1,11 @@
 import hashlib
 import io
 import os
+import struct
+import zlib
+
 import sbbf02
 import sbon
-import struct
 
 
 class StarKeyStore(sbbf02.StarFile):
@@ -39,6 +41,13 @@ class StarWorld(sbbf02.StarFile):
     def __init__(self, path):
         super(StarWorld, self).__init__(path)
         self._world_data = None
+
+    def get_region_data(self, x, y, layer=1):
+        """Get the raw data for a region. Regions are 32x32 tiles.
+
+        """
+        key = struct.pack('>BHH', layer, x, y)
+        return zlib.decompress(self.get(key))
 
     def get_world_data(self):
         if self._world_data:
