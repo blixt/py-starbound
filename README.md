@@ -73,3 +73,22 @@ Index(level=0, num_keys=34) @ 847
         01000a000f = 96 byte(s)
 # ...and 310 more lines.
 ```
+
+
+Getting region data
+-------------------
+
+If you want to export the binary data for a specific region, you can
+use the `region.py` script:
+
+```bash
+# First get the spawn position on target planet...
+$ ./cli.py --get-value playerStart /Starbound/universe/beta_73998977_11092106_-913658_12_10.world
+open StarboundFile(identifier="World2", path="/Starbound/universe/beta_73998977_11092106_-913658_12_10.world")
+
+playerStart = [0.0, 1247.5]
+
+# ...then export layer 1 at those coordinates to a file.
+# Arguments are: ./region.py <x> <y> <layer> <path>
+$ ./region.py 0 1247 1 /Starbound/universe/beta_73998977_11092106_-913658_12_10.world > startregion.dat
+```
