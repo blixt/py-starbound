@@ -1,4 +1,7 @@
+import collections
 import struct
+
+Document = collections.namedtuple('Document', ['name', 'data'])
 
 def read_bytes(stream):
     length = read_varlen_number(stream)
@@ -12,7 +15,11 @@ def read_document(stream):
 
     data = read_dynamic(stream)
 
-    return name, data
+    return Document(name, data)
+
+def read_document_list(stream):
+    length = read_varlen_number(stream)
+    return [read_document(stream) for _ in xrange(length)]
 
 def read_dynamic(stream):
     type = ord(stream.read(1))

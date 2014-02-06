@@ -66,8 +66,13 @@ class StarWorld(sbbf02.StarFileSBBF02):
         super(StarWorld, self).__init__(path)
         self._world_data = None
 
+    def get_entities(self, x, y):
+        stream = io.BytesIO(self.get_region_data(x, y, 2))
+        return sbon.read_document_list(stream)
+
     def get_region_data(self, x, y, layer=1):
-        """Get the raw data for a region. Regions are 32x32 tiles.
+        """Get the raw data for a region. Regions are sets of 32x32 in-game
+        tiles. Layer 1 holds tile data and layer 2 holds entity data.
 
         """
         key = struct.pack('>BHH', layer, x, y)
