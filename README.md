@@ -47,7 +47,7 @@ You can test this library using the `cli.py` script. Here's an example
 on how to get a value out of a world's metadata:
 
 ```bash
-$ ./cli.py --get-world-value planet.config.gravity /Starbound/player/11475cedd80ead373c19a91de2e2c4d3.shipworld
+$ ./cli.py --get-value planet.config.gravity /Starbound/player/11475cedd80ead373c19a91de2e2c4d3.shipworld
 open StarboundFile(identifier="World2", path="/Starbound/player/11475cedd80ead373c19a91de2e2c4d3.shipworld")
 
 planet.config.gravity = 80.0

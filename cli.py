@@ -39,13 +39,17 @@ def print_leaves(file, block_number=None, depth=0, prefix=None):
             sys.stdout.write('    ' * (depth + 1))
             print cur_key.encode('hex'), '=', len(value), 'byte(s)'
 
-def get_world_value(file, key_path):
-    """Get a value out of the world's data section"""
+def get_value(file, key_path):
+    """Get a value out of the file's metadata"""
 
-    assert isinstance(file, starbound.StarWorld), 'Requires a world file'
+    if isinstance(file, starbound.StarPlayer):
+        data = file.data
+    elif isinstance(file, starbound.StarWorld):
+        data = file.get_world_data()
+    else:
+        raise ValueError('--get-value requires a player or world file')
 
     key_parts = key_path.split('.')
-    data = file.get_world_data()
     for key in key_parts:
         data = data[key]
     print key_path, '=', data
@@ -54,12 +58,12 @@ def get_world_value(file, key_path):
 def main():
     p = optparse.OptionParser()
 
+    p.add_option('-g', '--get-value', dest='get_value',
+                 help=get_value.__doc__)
+
     p.add_option('-l', '--print-leaves', dest='print_leaves',
                  action='store_true', default=False,
                  help=print_leaves.__doc__)
-
-    p.add_option('-w', '--get-world-value', dest='world_key_path',
-                 help=get_world_value.__doc__)
 
     options, arguments = p.parse_args()
 
@@ -68,8 +72,8 @@ def main():
             print file
             print
 
-            if options.world_key_path:
-                get_world_value(file, options.world_key_path)
+            if options.get_value:
+                get_value(file, options.get_value)
                 print
 
             if options.print_leaves:
