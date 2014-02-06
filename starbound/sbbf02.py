@@ -1,11 +1,9 @@
 import bisect
 import io
-import sbon
 import struct
 
-
-def read_fixlen_string(stream, length):
-    return stream.read(length).rstrip('\x00').decode('utf-8')
+import filebase
+import sbon
 
 
 class StarBlock(object):
@@ -82,7 +80,7 @@ class LeafReader(object):
     __slots__ = ['_file', '_leaf', '_offset']
 
     def __init__(self, file, leaf):
-        assert isinstance(file, StarFile), 'File is not a StarFile instance'
+        assert isinstance(file, StarFileSBBF02), 'File is not a StarFileSBBF02 instance'
         assert isinstance(leaf, StarBlockLeaf), 'Leaf is not a StarBlockLeaf instance'
 
         self._file = file
@@ -120,12 +118,9 @@ class LeafReader(object):
         return data
 
 
-class StarFile(object):
+class StarFileSBBF02(filebase.StarFile):
     def __init__(self, path):
-        self._stream = None
-
-        self.path = path
-        self.name = None
+        super(StarFileSBBF02, self).__init__(path)
 
         self.block_size = None
         self.header_size = None
@@ -134,25 +129,8 @@ class StarFile(object):
         self.free_index_block = None
         self.root_block = None
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        if self.is_open():
-            self.close()
-
-    def __str__(self):
-        if self.is_open():
-            return 'open StarboundFile(name="{}", path="{}")'.format(self.name, self.path)
-        else:
-            return 'closed StarboundFile(path="{}")'.format(self.path)
-
-    def close(self):
-        assert self._stream, 'File is not open'
-        self._stream.close()
-        self._stream = None
-
     def get(self, key):
+        assert self.is_open(), 'Tried to get from closed file'
         assert len(key) == self.key_size, 'Invalid key length'
 
         block = self.get_block(self.root_block)
@@ -184,16 +162,12 @@ class StarFile(object):
 
         raise KeyError(key)
 
-    def is_open(self):
-        return self._stream is not None
-
     def open(self):
         """Opens the file and reads its header data.
 
         """
-        assert self._stream is None, 'File is already open'
-        stream = open(self.path)
-        self._stream = stream
+        super(StarFileSBBF02, self).open()
+        stream = self._stream
 
         assert stream.read(6) == 'SBBF02', 'Invalid file format'
 
@@ -204,18 +178,16 @@ class StarFile(object):
         stream.seek(32)
 
         # Require that the format of the content is BTreeDB4.
-        db_format = read_fixlen_string(stream, 12)
+        db_format = sbon.read_fixlen_string(stream, 12)
         assert db_format == 'BTreeDB4', 'Expected binary tree database'
 
         # Name of the database.
-        self.name = read_fixlen_string(stream, 12)
+        self.identifier = sbon.read_fixlen_string(stream, 12)
 
+        # TODO: Figure out better variable names.
         self.key_size, use_second_value, value_1, value_1_bool, value_2, value_2_bool = struct.unpack('>i?xi?xxxi?', stream.read(19))
 
         if use_second_value:
             self.root_block = value_2
         else:
             self.root_block = value_1
-
-    def read(self, length):
-        return self._stream.read(length)

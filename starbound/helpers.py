@@ -5,17 +5,24 @@ import struct
 import zlib
 
 import sbbf02
+import sbvj01
 import sbon
 
 
-class StarKeyStore(sbbf02.StarFile):
+class StarKeyStore(sbbf02.StarFileSBBF02):
+    """A B-tree database that uses SHA-256 hashes for key lookup.
+
+    """
     def get(self, key):
         # Get the SHA-256 hash of the key.
         key = hashlib.sha256(key.encode('utf-8')).digest()
-        return super(StarPackage, self).get(key)
+        return super(StarKeyStore, self).get(key)
 
 
 class StarPackage(StarKeyStore):
+    """A B-tree database representing a package of files.
+
+    """
     DIGEST_KEY = '_digest'
     INDEX_KEY = '_index'
 
@@ -35,7 +42,24 @@ class StarPackage(StarKeyStore):
         return self._index
 
 
-class StarWorld(sbbf02.StarFile):
+class StarPlayer(sbvj01.StarFileSBVJ01):
+    """A Starbound character.
+
+    """
+    def __init__(self, path):
+        super(StarPlayer, self).__init__(path)
+        self.name = None
+
+    def open(self):
+        super(StarPlayer, self).open()
+        assert self.identifier == 'PlayerEntity', 'Invalid player file'
+        self.name = self.data['identity']['name']
+
+
+class StarWorld(sbbf02.StarFileSBBF02):
+    """A single Starbound world.
+
+    """
     WORLD_DATA_KEY = '\x00\x00\x00\x00\x00'
 
     def __init__(self, path):
@@ -58,19 +82,15 @@ class StarWorld(sbbf02.StarFile):
         # Not sure what these values mean.
         unknown_1, unknown_2 = struct.unpack('>ii', stream.read(8))
 
-        assert sbon.read_string(stream) == 'WorldMetadata', 'Invalid world data'
+        name, data = sbon.read_document(stream)
+        assert name == 'WorldMetadata', 'Invalid world data'
 
-        # Skip 5 unknown bytes before world data starts.
-        stream.seek(5, 1)
-
-        # Read the huge world data map.
-        self._world_data = sbon.read_dynamic(stream)
-
-        return self._world_data
+        self._world_data = data
+        return data
 
     def open(self):
         super(StarWorld, self).open()
-        assert self.name == 'World2', 'Tried to open non-world SBBF02 file'
+        assert self.identifier == 'World2', 'Tried to open non-world SBBF02 file'
 
 
 def open(path):
@@ -79,6 +99,8 @@ def open(path):
         file = StarKeyStore(path)
     elif extension == '.pak':
         file = StarPackage(path)
+    elif extension == '.player':
+        file = StarPlayer(path)
     elif extension in ('.shipworld', '.world'):
         file = StarWorld(path)
     else:
