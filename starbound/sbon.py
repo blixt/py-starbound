@@ -91,7 +91,7 @@ def read_string_list(stream):
     return [read_string(stream) for _ in xrange(length)]
 
 def read_tile(stream):
-    values = struct.unpack('>hBBhBhBBhBBhBhBB?', stream.read(23))
+    values = struct.unpack('>hBBhBhBBhBBHBhBB?', stream.read(23))
     return Tile(*values)
 
 def read_varlen_number(stream):
