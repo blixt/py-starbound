@@ -42,7 +42,7 @@ def print_leaves(file, block_number=None, depth=0, prefix=None):
 def get_value(file, key_path):
     """Get a value out of the file's metadata"""
 
-    if isinstance(file, starbound.StarPlayer):
+    if isinstance(file, starbound.StarFileSBVJ01):
         data = file.data
     elif isinstance(file, starbound.StarWorld):
         data = file.get_world_data()

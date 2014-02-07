@@ -100,7 +100,9 @@ class StarWorld(sbbf02.StarFileSBBF02):
 
 def open(path):
     _, extension = os.path.splitext(path)
-    if extension == '.db':
+    if extension == '.clientcontext':
+        file = sbvj01.StarFileSBVJ01(path)
+    elif extension == '.db':
         file = StarKeyStore(path)
     elif extension == '.pak':
         file = StarPackage(path)
