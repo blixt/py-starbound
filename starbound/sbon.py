@@ -3,6 +3,26 @@ import struct
 
 Document = collections.namedtuple('Document', ['name', 'data'])
 
+Tile = collections.namedtuple('Tile', [
+    'foreground_material',
+    'foreground_hue_shift',
+    'foreground_variant',
+    'foreground_sprite',
+    'foreground_sprite_hue_shift',
+    'background_material',
+    'background_hue_shift',
+    'background_variant',
+    'background_sprite',
+    'background_sprite_hue_shift',
+    'liquid',
+    'liquid_pressure',
+    'collision',
+    'dungeon',
+    'biome',
+    'biome_2',
+    'indestructible',
+])
+
 def read_bytes(stream):
     length = read_varlen_number(stream)
     return stream.read(length)
@@ -69,6 +89,10 @@ def read_string_list(stream):
     """
     length = read_varlen_number(stream)
     return [read_string(stream) for _ in xrange(length)]
+
+def read_tile(stream):
+    values = struct.unpack('>hBBhBhBBhBBhBhBB?', stream.read(23))
+    return Tile(*values)
 
 def read_varlen_number(stream):
     """Read while the most significant bit is set, then put the 7 least
