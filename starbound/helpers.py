@@ -1,3 +1,4 @@
+import collections
 import hashlib
 import io
 import os
@@ -62,9 +63,34 @@ class StarWorld(sbbf02.StarFileSBBF02):
     """
     WORLD_DATA_KEY = '\x00\x00\x00\x00\x00'
 
+    Tile = collections.namedtuple('Tile', [
+        'foreground_material',
+        'foreground_hue_shift',
+        'foreground_variant',
+        'foreground_sprite',
+        'foreground_sprite_hue_shift',
+        'background_material',
+        'background_hue_shift',
+        'background_variant',
+        'background_sprite',
+        'background_sprite_hue_shift',
+        'liquid',
+        'liquid_pressure',
+        'collision',
+        'dungeon',
+        'biome',
+        'biome_2',
+        'indestructible',
+    ])
+
     def __init__(self, path):
         super(StarWorld, self).__init__(path)
         self._world_data = None
+
+    @staticmethod
+    def read_tile(stream):
+        values = struct.unpack('>hBBhBhBBhBBhBhBB?', stream.read(23))
+        return StarWorld.Tile(*values)
 
     def get_entities(self, x, y):
         stream = io.BytesIO(self.get_region_data(x, y, 2))
@@ -77,6 +103,12 @@ class StarWorld(sbbf02.StarFileSBBF02):
         """
         key = struct.pack('>BHH', layer, x, y)
         return zlib.decompress(self.get(key))
+
+    def get_tiles(self, x, y):
+        stream = io.BytesIO(self.get_region_data(x, y, 1))
+        unknown = stream.read(3)
+        # There are 1024 (32x32) tiles in a region.
+        return [StarWorld.read_tile(stream) for _ in xrange(1024)]
 
     def get_world_data(self):
         if self._world_data:
