@@ -14,13 +14,13 @@ class StarBlock(object):
         if signature == '\x00\x00':
             return None
 
-        for block_type in (StarBlockFreeIndex, StarBlockIndex, StarBlockLeaf):
+        for block_type in (StarBlockFree, StarBlockIndex, StarBlockLeaf):
             if signature == block_type.SIGNATURE:
                 return block_type(file)
 
         raise ValueError('Unrecognized block type')
 
-class StarBlockFreeIndex(StarBlock):
+class StarBlockFree(StarBlock):
     SIGNATURE = 'FF'
 
     __slots__ = ['next_free_block']
@@ -30,7 +30,7 @@ class StarBlockFreeIndex(StarBlock):
         self.next_free_block = value if value != -1 else None
 
     def __str__(self):
-        return 'FreeIndex(next_free_block={})'.format(self.next_free_block)
+        return 'Free(next_free_block={})'.format(self.next_free_block)
 
 class StarBlockIndex(StarBlock):
     SIGNATURE = 'II'
@@ -124,16 +124,18 @@ class StarFileSBBF02(filebase.StarFile):
 
         self.block_size = None
         self.header_size = None
-        self.key_size = None
+        self.free_block_is_dirty = None
+        self.free_block = None
 
-        self.free_index_block = None
-        self.root_block = None
+        # TODO: Move into new class (BTreeDB4)
+        self.key_size = None
+        self.root_node = None
 
     def get(self, key):
         assert self.is_open(), 'Tried to get from closed file'
         assert len(key) == self.key_size, 'Invalid key length'
 
-        block = self.get_block(self.root_block)
+        block = self.get_block(self.root_node)
 
         # Scan down the B-tree until we reach a leaf.
         while isinstance(block, StarBlockIndex):
@@ -171,12 +173,17 @@ class StarFileSBBF02(filebase.StarFile):
 
         assert stream.read(6) == 'SBBF02', 'Invalid file format'
 
-        # Header and block size.
-        self.header_size, self.block_size, self.bool_1, self.free_index_block = struct.unpack('>ii?i', stream.read(13))
+        # Block header data.
+        fields = struct.unpack('>ii?i', stream.read(13))
+        self.header_size = fields[0]
+        self.block_size = fields[1]
+        self.free_block_is_dirty = fields[2]
+        self.free_block = fields[3]
 
-        # Skip ahead to content header.
+        # Skip ahead to user header.
         stream.seek(32)
 
+        # TODO: Move into new class (BTreeDB4)
         # Require that the format of the content is BTreeDB4.
         db_format = sbon.read_fixlen_string(stream, 12)
         assert db_format == 'BTreeDB4', 'Expected binary tree database'
@@ -184,10 +191,11 @@ class StarFileSBBF02(filebase.StarFile):
         # Name of the database.
         self.identifier = sbon.read_fixlen_string(stream, 12)
 
-        # TODO: Figure out better variable names.
-        self.key_size, use_second_value, value_1, value_1_bool, value_2, value_2_bool = struct.unpack('>i?xi?xxxi?', stream.read(19))
+        fields = struct.unpack('>i?xi?xxxi?', stream.read(19))
+        self.key_size = fields[0]
 
-        if use_second_value:
-            self.root_block = value_2
+        # Whether to use the alternate root node index.
+        if fields[1]:
+            self.root_node, self.root_node_is_leaf = fields[4:6]
         else:
-            self.root_block = value_1
+            self.root_node, self.root_node_is_leaf = fields[2:4]

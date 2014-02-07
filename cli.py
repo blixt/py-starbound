@@ -16,7 +16,7 @@ def print_leaves(file, block_number=None, depth=0, prefix=None):
     """Prints out the full B-tree of accessible leaves"""
 
     if block_number is None:
-        block_number = file.root_block
+        block_number = file.root_node
     block = file.get_block(block_number)
 
     sys.stdout.write('   ' * depth)
