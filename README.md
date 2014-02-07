@@ -78,17 +78,40 @@ Index(level=0, num_keys=34) @ 847
 Getting region data
 -------------------
 
-If you want to export the binary data for a specific region, you can
-use the `region.py` script:
+If you want information about a region, you can use the `region.py`
+script. For example, here's how to pretty print the tiles in a region:
 
 ```bash
-# First get the spawn position on target planet...
-$ ./cli.py --get-value playerStart /Starbound/universe/beta_73998977_11092106_-913658_12_10.world
-open StarboundFile(identifier="World2", path="/Starbound/universe/beta_73998977_11092106_-913658_12_10.world")
+$ ./region.py /Starbound/universe/beta_73998977_11092106_-913658_12_8.world
+# Outputs colored tiles that can't be displayed on here.
+```
 
-playerStart = [0.0, 1247.5]
+If you don't provide X and Y coordinates before the path, it will
+default to the region that the spawn point is in.
 
-# ...then export layer 1 at those coordinates to a file.
-# Arguments are: ./region.py <x> <y> <layer> <path>
-$ ./region.py 0 1247 1 /Starbound/universe/beta_73998977_11092106_-913658_12_10.world > startregion.dat
+And here's how to print the entities in a region:
+
+```bash
+$ ./region.py --entities 249 52 /Starbound/universe/beta_73998977_11092106_-913658_12_8.world
+World size:          250 by 156 regions
+Spawn point region:  0, 51
+Outputting region:   249, 52
+
+[
+  [
+    "ObjectEntity",
+    {
+      "crafting": false,
+      "craftingProgress": 0.0,
+      "currentState": 0,
+      "direction": "right",
+      "initialized": true,
+      "items": [
+        {
+          "count": 100,
+          "data": {},
+          "name": "fabric"
+        },
+        null,
+...
 ```

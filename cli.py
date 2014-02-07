@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 
 import optparse
+import signal
 import struct
 import sys
 
 import starbound
 import starbound.sbbf02
 import starbound.sbon
+
+# Don't break on pipe signal.
+signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
 def print_leaves(file, block_number=None, depth=0, prefix=None):
     """Prints out the full B-tree of accessible leaves"""
