@@ -53,6 +53,23 @@ open File(identifier="World2", path="/Starbound/player/11475cedd80ead373c19a91de
 planet.config.gravity = 80.0
 ```
 
+Here's how to get the contents of a file in a .pak package:
+
+```bash
+$ ./cli.py --get-file /weather/crystalrain/crystalrain.weather /Starbound/assets/packed.pak
+{
+  "name" : "crystalrain",
+
+  "particles" : [
+    {
+      "density" : 0.15,
+      "autoRotate" : true,
+
+      "particle" : {
+        "type" : "textured",
+# ...and 68 more lines.
+```
+
 Here's another example that prints the B-tree of the data for a
 player's ship:
 
