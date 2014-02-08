@@ -1,4 +1,4 @@
-class StarFile(object):
+class File(object):
     def __init__(self, path):
         self._stream = None
 
@@ -14,9 +14,9 @@ class StarFile(object):
 
     def __str__(self):
         if self.is_open():
-            return 'open StarboundFile(identifier="{}", path="{}")'.format(self.identifier, self.path)
+            return 'open File(identifier="{}", path="{}")'.format(self.identifier, self.path)
         else:
-            return 'closed StarboundFile(path="{}")'.format(self.path)
+            return 'closed File(path="{}")'.format(self.path)
 
     def close(self):
         assert self._stream, 'File is not open'

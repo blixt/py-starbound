@@ -6,7 +6,7 @@ import struct
 import sys
 
 import starbound
-import starbound.sbbf02
+import starbound.btreedb4
 import starbound.sbon
 
 # Don't break on pipe signal.
@@ -24,7 +24,7 @@ def print_leaves(file, block_number=None, depth=0, prefix=None):
         sys.stdout.write(prefix + ': ')
     print block, '@', block_number
 
-    if isinstance(block, starbound.sbbf02.StarBlockIndex):
+    if isinstance(block, starbound.btreedb4.BTreeIndex):
         for index, block_reference in enumerate(block.values):
             if index == 0:
                 key_hex = '^' * file.key_size * 2
@@ -33,8 +33,8 @@ def print_leaves(file, block_number=None, depth=0, prefix=None):
 
             print_leaves(file, block_reference, depth + 1, prefix=key_hex)
 
-    if isinstance(block, starbound.sbbf02.StarBlockLeaf):
-        stream = starbound.sbbf02.LeafReader(file, block)
+    if isinstance(block, starbound.btreedb4.BTreeLeaf):
+        stream = starbound.btreedb4.LeafReader(file, block)
         num_keys, = struct.unpack('>i', stream.read(4))
         for _ in xrange(num_keys):
             cur_key = stream.read(file.key_size)
@@ -46,9 +46,9 @@ def print_leaves(file, block_number=None, depth=0, prefix=None):
 def get_value(file, key_path):
     """Get a value out of the file's metadata"""
 
-    if isinstance(file, starbound.StarFileSBVJ01):
+    if isinstance(file, starbound.FileSBVJ01):
         data = file.data
-    elif isinstance(file, starbound.StarWorld):
+    elif isinstance(file, starbound.World):
         data = file.get_world_data()
     else:
         raise ValueError('--get-value requires a player or world file')
