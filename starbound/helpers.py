@@ -114,7 +114,7 @@ def open(path):
         file = sbvj01.FileSBVJ01(path)
     elif extension == '.db':
         file = KeyStore(path)
-    elif extension == '.pak':
+    elif extension in ('.modpak', '.pak'):
         file = Package(path)
     elif extension == '.player':
         file = Player(path)
