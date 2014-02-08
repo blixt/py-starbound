@@ -44,8 +44,14 @@ def print_leaves(file, block_number=None, depth=0, prefix=None):
             print cur_key.encode('hex'), '=', len(value), 'byte(s)'
 
 def get_file(file, filename):
+    """Get the contents of a file in a package."""
     assert isinstance(file, starbound.Package), 'Can only get files out of packages'
     sys.stdout.write(file.get(filename))
+
+def get_file_list(file):
+    """Get the list of files in a package."""
+    assert isinstance(file, starbound.Package), 'Can only get file list out of packages'
+    print '\n'.join(file.get_index())
 
 def get_value(file, key_path):
     """Get a value out of the file's metadata"""
@@ -66,10 +72,14 @@ def get_value(file, key_path):
 def main():
     p = optparse.OptionParser()
 
-    p.add_option('-f', '--get-file', dest='get_file',
+    p.add_option('-f', '--get-file', dest='path',
                  help=get_file.__doc__)
 
-    p.add_option('-g', '--get-value', dest='get_value',
+    p.add_option('-i', '--get-file-list', dest='get_file_list',
+                 action='store_true', default=False,
+                 help=get_file_list.__doc__)
+
+    p.add_option('-g', '--get-value', dest='key',
                  help=get_value.__doc__)
 
     p.add_option('-l', '--print-leaves', dest='print_leaves',
@@ -80,15 +90,19 @@ def main():
 
     for path in arguments:
         with starbound.open_file(path) as file:
-            if options.get_file:
-                get_file(file, options.get_file)
+            if options.path:
+                get_file(file, options.path)
                 return
 
             print file
             print
 
-            if options.get_value:
-                get_value(file, options.get_value)
+            if options.get_file_list:
+                get_file_list(file)
+                print
+
+            if options.key:
+                get_value(file, options.key)
                 print
 
             if options.print_leaves:
