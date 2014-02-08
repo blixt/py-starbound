@@ -7,6 +7,15 @@ import sbon
 
 
 class FileBTreeDB4(sbbf02.FileSBBF02):
+    """A B-tree database format on top of the SBBF02 block format.
+
+    Note: The developers of this format probably intended for the underlying
+    file format to be arbitrary, but this database has pretty strong
+    connections to SBBF02 right now so it's been implemented as inheriting from
+    that file format. In the future we may want to split away from the
+    inheritance chain and instead use the SBBF02 file as an API.
+
+    """
     def __init__(self, path):
         super(FileBTreeDB4, self).__init__(path)
 
