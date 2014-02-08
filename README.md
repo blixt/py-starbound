@@ -39,9 +39,7 @@ identity.name = Fleur
 ### Inspecting Starbound packages
 
 Starbound packages are essentially sets of packed (but uncompressed)
-files.
-
-Here's how to get the contents of a file in a .pak package:
+files. Here's how to get the contents of a file in a .pak package:
 
 ```bash
 $ ./cli.py --get-file /tiles/mods/sand.matmod /Starbound/assets/packed.pak
@@ -118,7 +116,7 @@ the tiles in a region:
 $ ./region.py /Starbound/universe/beta_73998977_11092106_-913658_12_8.world
 World size:          250 by 156 regions
 Spawn point region:  0, 51
-Outputting region:   249, 52
+Outputting region:   0, 51
 
 # Outputs colored tiles that can't be displayed on here.
 ```
