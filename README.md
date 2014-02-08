@@ -7,8 +7,75 @@ which are used to store worlds, player characters, assets, etc.
 Feel free to contribute either via submitting pull requests or writing
 up issues with suggestions and/or bugs.
 
-Usage
------
+
+Using the command line interface
+--------------------------------
+
+The command line interface will let you inspect various Starbound
+files.
+
+
+### Getting metadata from world or player files
+
+Use the `--get-value` option to retrieve a metadata value. Example:
+
+```bash
+$ ./cli.py --get-value planet.config.gravity /Starbound/player/11475cedd80ead373c19a91de2e2c4d3.shipworld
+open File(identifier="World2", path="/Starbound/player/11475cedd80ead373c19a91de2e2c4d3.shipworld")
+
+planet.config.gravity = 80.0
+```
+
+Another example for getting the name of a player:
+
+```bash
+/cli.py --get-value identity.name /Starbound/player/11475cedd80ead373c19a91de2e2c4d3.player
+open File(identifier="PlayerEntity", path="/Starbound/player/11475cedd80ead373c19a91de2e2c4d3.player")
+
+identity.name = Fleur
+```
+
+
+### Inspecting Starbound packages
+
+Starbound packages are essentially sets of packed (but uncompressed)
+files.
+
+Here's how to get the contents of a file in a .pak package:
+
+```bash
+$ ./cli.py --get-file /tiles/mods/sand.matmod /Starbound/assets/packed.pak
+{
+  "modId" : 4,
+  "modName" : "sand",
+  "frames" : "sand.png",
+  "variants" : 5,
+  "Description" : "Scattered sand.",
+  "footstepSound" : "/sfx/blocks/footstep_sand.wav",
+  "health" : 0
+}
+```
+
+You can also get the list of the files in a .pak file:
+
+```bash
+$ ./cli.py --get-file-list /Starbound/assets/packed.pak
+open File(identifier="Assets1", path="/Starbound/assets/packed.pak")
+
+/animations/1hswordhitspark/1hswordhitspark.animation
+/animations/1hswordhitspark/1hswordhitspark.frames
+/animations/1hswordhitspark/1hswordhitspark.png
+/animations/2hswordhitspark/2hswordhitspark.animation
+/animations/2hswordhitspark/2hswordhitspark.frames
+/animations/2hswordhitspark/2hswordhitspark.png
+/animations/axehitspark/axehitspark.animation
+/animations/axehitspark/axehitspark.frames
+# ...and so on.
+```
+
+
+Using the Python package
+------------------------
 
 The easiest way to get started with the package is to use the helper
 function `open_file`:
@@ -40,66 +107,19 @@ print data['planet']['size']
 ```
 
 
-Trying it out
--------------
+Getting world data
+------------------
 
-You can test this library using the `cli.py` script. Here's an example
-on how to get a value out of a world's metadata:
-
-```bash
-$ ./cli.py --get-value planet.config.gravity /Starbound/player/11475cedd80ead373c19a91de2e2c4d3.shipworld
-open File(identifier="World2", path="/Starbound/player/11475cedd80ead373c19a91de2e2c4d3.shipworld")
-
-planet.config.gravity = 80.0
-```
-
-Here's how to get the contents of a file in a .pak package:
-
-```bash
-$ ./cli.py --get-file /weather/crystalrain/crystalrain.weather /Starbound/assets/packed.pak
-{
-  "name" : "crystalrain",
-
-  "particles" : [
-    {
-      "density" : 0.15,
-      "autoRotate" : true,
-
-      "particle" : {
-        "type" : "textured",
-# ...and 68 more lines.
-```
-
-Here's another example that prints the B-tree of the data for a
-player's ship:
-
-```bash
-$ ./cli.py --print-leaves /Starbound/player/11475cedd80ead373c19a91de2e2c4d3.shipworld
-open File(identifier="World2", path="/Starbound/player/11475cedd80ead373c19a91de2e2c4d3.shipworld")
-
-Index(level=0, num_keys=34) @ 847
-   ^^^^^^^^^^: Leaf(next_block=930) @ 927
-        0000000000 = 237921 byte(s)
-   01000a000a: Leaf(next_block=None) @ 361
-        01000a000a = 96 byte(s)
-   01000a000b: Leaf(next_block=265) @ 127
-        01000a000b = 96 byte(s)
-        01000a000c = 96 byte(s)
-        01000a000d = 96 byte(s)
-        01000a000e = 96 byte(s)
-        01000a000f = 96 byte(s)
-# ...and 310 more lines.
-```
-
-
-Getting region data
--------------------
-
-If you want information about a region, you can use the `region.py`
-script. For example, here's how to pretty print the tiles in a region:
+If you want information about a region in a world (planet or ship), you
+can use the `region.py` script. For example, here's how to pretty print
+the tiles in a region:
 
 ```bash
 $ ./region.py /Starbound/universe/beta_73998977_11092106_-913658_12_8.world
+World size:          250 by 156 regions
+Spawn point region:  0, 51
+Outputting region:   249, 52
+
 # Outputs colored tiles that can't be displayed on here.
 ```
 
