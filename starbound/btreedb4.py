@@ -10,7 +10,6 @@ class FileBTreeDB4(sbbf02.FileSBBF02):
     def __init__(self, path):
         super(FileBTreeDB4, self).__init__(path)
 
-        self.identifier = None
         self.key_size = None
 
         self.alternate_root_node = None

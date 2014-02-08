@@ -27,7 +27,7 @@ file type. To be more specific, you can use the file type classes:
 import io
 import starbound
 
-world = starbound.StarFileSBBF02('universe/beta_73998977_11092106_-913658_12_10.world')
+world = starbound.FileBTreeDB4('universe/beta_73998977_11092106_-913658_12_10.world')
 world.open()
 
 # Get the raw data out of the database, then parse it.
@@ -48,7 +48,7 @@ on how to get a value out of a world's metadata:
 
 ```bash
 $ ./cli.py --get-value planet.config.gravity /Starbound/player/11475cedd80ead373c19a91de2e2c4d3.shipworld
-open StarboundFile(identifier="World2", path="/Starbound/player/11475cedd80ead373c19a91de2e2c4d3.shipworld")
+open File(identifier="World2", path="/Starbound/player/11475cedd80ead373c19a91de2e2c4d3.shipworld")
 
 planet.config.gravity = 80.0
 ```
@@ -58,7 +58,7 @@ player's ship:
 
 ```bash
 $ ./cli.py --print-leaves /Starbound/player/11475cedd80ead373c19a91de2e2c4d3.shipworld
-open StarboundFile(identifier="World2", path="/Starbound/player/11475cedd80ead373c19a91de2e2c4d3.shipworld")
+open File(identifier="World2", path="/Starbound/player/11475cedd80ead373c19a91de2e2c4d3.shipworld")
 
 Index(level=0, num_keys=34) @ 847
    ^^^^^^^^^^: Leaf(next_block=930) @ 927
