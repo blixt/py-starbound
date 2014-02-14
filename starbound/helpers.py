@@ -8,18 +8,28 @@ import zlib
 import btreedb4
 import sbvj01
 import sbon
+import starbound_sha256
 
 
 class KeyStore(btreedb4.FileBTreeDB4):
     """A B-tree database that uses SHA-256 hashes for key lookup.
 
     """
-    def get(self, key):
+    def get(self, key, use_starbound_sha256=False):
         # Get the SHA-256 hash of the key.
-        hashed_key = hashlib.sha256(key.encode('utf-8')).digest()
+        if use_starbound_sha256:
+            hashed_key = starbound_sha256.sha256(key.encode('utf-8')).digest()
+        else:
+            hashed_key = hashlib.sha256(key.encode('utf-8')).digest()
+
         try:
             return super(KeyStore, self).get(hashed_key)
         except KeyError:
+            # Use a different implementation of SHA-256 for 55 character
+            # strings. This is handled as an exception so that a future fix of
+            # the hashing algorithm in Starbound won't break this library.
+            if len(key) == 55 and not use_starbound_sha256:
+                return self.get(key, True)
             raise KeyError('%s (%s)' % (key, binascii.hexlify(hashed_key)))
 
 
