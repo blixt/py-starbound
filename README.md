@@ -105,6 +105,19 @@ print data['planet']['size']
 ```
 
 
+Extracting `.pak` files
+-----------------------
+
+You can use the `export.py` script to extract all the files in a `.pak`
+(or `.modpak`) file.
+
+Example:
+
+```bash
+./extract.py -d assets /Starbound/assets/packed.pak
+```
+
+
 Getting world data
 ------------------
 
