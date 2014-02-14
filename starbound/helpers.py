@@ -1,4 +1,5 @@
 import hashlib
+import binascii
 import io
 import os
 import struct
@@ -15,8 +16,11 @@ class KeyStore(btreedb4.FileBTreeDB4):
     """
     def get(self, key):
         # Get the SHA-256 hash of the key.
-        key = hashlib.sha256(key.encode('utf-8')).digest()
-        return super(KeyStore, self).get(key)
+        hashed_key = hashlib.sha256(key.encode('utf-8')).digest()
+        try:
+            return super(KeyStore, self).get(hashed_key)
+        except KeyError:
+            raise KeyError('%s (%s)' % (key, binascii.hexlify(hashed_key)))
 
 
 class Package(KeyStore):
