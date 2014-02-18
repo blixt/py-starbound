@@ -59,7 +59,7 @@ def get_value(file, key_path):
     if isinstance(file, starbound.FileSBVJ01):
         data = file.data
     elif isinstance(file, starbound.World):
-        data = file.get_world_data()
+        data = file.get_metadata()
     else:
         raise ValueError('--get-value requires a player or world file')
 

@@ -42,9 +42,15 @@ def main():
 
     with starbound.open_file(path) as world:
         # Get information about the world.
-        world_data = world.get_world_data()
-        size = world_data['planet']['size']
-        spawn = world_data['playerStart']
+        metadata, version = world.get_metadata()
+        if version == 1:
+            size = metadata['planet']['size']
+            spawn = metadata['playerStart']
+        elif version == 2:
+            size = metadata['worldTemplate']['size']
+            spawn = metadata['playerStart']
+        else:
+            raise NotImplementedError('Unsupported metadata version %d' % version)
 
         # Default coordinates to spawn point.
         if x is None or y is None:

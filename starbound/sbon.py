@@ -1,7 +1,7 @@
 import collections
 import struct
 
-Document = collections.namedtuple('Document', ['name', 'data'])
+Document = collections.namedtuple('Document', ['name', 'version', 'data'])
 
 Tile = collections.namedtuple('Tile', [
     'foreground_material',
@@ -31,11 +31,12 @@ def read_document(stream):
     name = read_string(stream)
 
     # Not sure what this part is.
-    assert stream.read(5) == '\x01\x00\x00\x00\x01'
+    assert stream.read(1) == '\x01'
 
+    version = struct.unpack('>i', stream.read(4))[0]
     data = read_dynamic(stream)
 
-    return Document(name, data)
+    return Document(name, version, data)
 
 def read_document_list(stream):
     length = read_varlen_number(stream)

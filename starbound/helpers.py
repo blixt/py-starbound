@@ -82,7 +82,8 @@ class World(btreedb4.FileBTreeDB4):
 
     def __init__(self, path):
         super(World, self).__init__(path)
-        self._world_data = None
+        self._metadata = None
+        self._metadata_version = None
 
     def get_entities(self, x, y):
         stream = io.BytesIO(self.get_region_data(x, y, 2))
@@ -96,26 +97,28 @@ class World(btreedb4.FileBTreeDB4):
         key = struct.pack('>BHH', layer, x, y)
         return zlib.decompress(self.get(key))
 
-    def get_tiles(self, x, y):
-        stream = io.BytesIO(self.get_region_data(x, y, 1))
-        unknown = stream.read(3)
-        # There are 1024 (32x32) tiles in a region.
-        return [sbon.read_tile(stream) for _ in xrange(World.TILES_PER_REGION)]
-
-    def get_world_data(self):
-        if self._world_data:
-            return self._world_data
+    def get_metadata(self):
+        if self._metadata:
+            return self._metadata, self._metadata_version
 
         stream = io.BytesIO(self.get(World.DATA_KEY))
 
         # Not sure what these values mean.
         unknown_1, unknown_2 = struct.unpack('>ii', stream.read(8))
 
-        name, data = sbon.read_document(stream)
+        name, version, data = sbon.read_document(stream)
         assert name == 'WorldMetadata', 'Invalid world data'
 
-        self._world_data = data
-        return data
+        self._metadata = data
+        self._metadata_version = version
+
+        return data, version
+
+    def get_tiles(self, x, y):
+        stream = io.BytesIO(self.get_region_data(x, y, 1))
+        unknown = stream.read(3)
+        # There are 1024 (32x32) tiles in a region.
+        return [sbon.read_tile(stream) for _ in xrange(World.TILES_PER_REGION)]
 
     def open(self):
         super(World, self).open()
