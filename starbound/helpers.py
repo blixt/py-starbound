@@ -56,6 +56,20 @@ class Package(KeyStore):
         return self._index
 
 
+class VariantDatabase(KeyStore):
+    def __init__(self, path):
+        super(VariantDatabase, self).__init__(path)
+
+    def get(self, key):
+        data = super(VariantDatabase, self).get(key)
+        stream = io.BytesIO(zlib.decompress(data))
+        return sbon.read_dynamic(stream)
+
+    def open(self):
+        super(VariantDatabase, self).open()
+        assert self.identifier == 'JSON1', 'Unsupported variant database'
+
+
 class Player(sbvj01.FileSBVJ01):
     """A Starbound character.
 
@@ -130,7 +144,7 @@ def open(path):
     if extension == '.clientcontext':
         file = sbvj01.FileSBVJ01(path)
     elif extension == '.db':
-        file = KeyStore(path)
+        file = VariantDatabase(path)
     elif extension in ('.modpak', '.pak'):
         file = Package(path)
     elif extension == '.player':
