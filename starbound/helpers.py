@@ -23,7 +23,7 @@ class KeyStore(btreedb4.FileBTreeDB4):
             hashed_key = hashlib.sha256(key.encode('utf-8')).digest()
 
         try:
-            return super(KeyStore, self).get(hashed_key)
+            return self.get(hashed_key)
         except KeyError:
             # Use a different implementation of SHA-256 for 55 character
             # strings. This is handled as an exception so that a future fix of
@@ -32,12 +32,34 @@ class KeyStore(btreedb4.FileBTreeDB4):
                 return self.get(key, True)
             raise KeyError('%s (%s)' % (key, binascii.hexlify(hashed_key)))
 
+    def get_hash(self, hashed_key):
+        return super(KeyStore, self).get(hashed_key)
+
 
 class KeyStoreCompressed(KeyStore):
     def get(self, key):
         data = super(KeyStoreCompressed, self).get(key)
-        stream = io.BytesIO(zlib.decompress(data))
-        return sbon.read_dynamic(stream)
+        return zlib.decompress(data)
+
+    def get_hash(self, hashed_key):
+        data = super(KeyStoreCompressed, self).get_hash(hashed_key)
+        return zlib.decompress(data)
+
+
+class CelestialChunks(KeyStoreCompressed):
+    def get(self, key):
+        data = super(CelestialChunks, self).get(key)
+        stream = io.BytesIO(data)
+        return sbon.read_document(stream)
+
+    def get_hash(self, key):
+        data = super(CelestialChunks, self).get_hash(key)
+        stream = io.BytesIO(data)
+        return sbon.read_document(stream)
+
+    def open(self):
+        super(CelestialChunks, self).open()
+        assert self.identifier == 'Celestial2', 'Unsupported celestial chunks file'
 
 
 class Package(KeyStore):
@@ -64,10 +86,15 @@ class Package(KeyStore):
 
 
 class VariantDatabase(KeyStoreCompressed):
-    # TODO: The key encoding for this may be SBON-encoded SHA-256 hash.
     def open(self):
         super(VariantDatabase, self).open()
         assert self.identifier == 'JSON1', 'Unsupported variant database'
+
+    def get(self, key):
+        # TODO: The key encoding for this may be SBON-encoded SHA-256 hash.
+        data = super(VariantDatabase, self).get(key)
+        stream = io.BytesIO(data)
+        return sbon.read_dynamic(stream)
 
 
 class Player(sbvj01.FileSBVJ01):
@@ -142,7 +169,7 @@ class World(btreedb4.FileBTreeDB4):
 def open(path):
     _, extension = os.path.splitext(path)
     if extension == '.chunks':
-        file = KeyStoreCompressed(path)
+        file = CelestialChunks(path)
     elif extension in ('.clientcontext', '.dat'):
         file = sbvj01.FileSBVJ01(path)
     elif extension == '.db':
