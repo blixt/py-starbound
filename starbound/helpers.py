@@ -33,6 +33,13 @@ class KeyStore(btreedb4.FileBTreeDB4):
             raise KeyError('%s (%s)' % (key, binascii.hexlify(hashed_key)))
 
 
+class KeyStoreCompressed(KeyStore):
+    def get(self, key):
+        data = super(KeyStoreCompressed, self).get(key)
+        stream = io.BytesIO(zlib.decompress(data))
+        return sbon.read_dynamic(stream)
+
+
 class Package(KeyStore):
     """A B-tree database representing a package of files.
 
@@ -56,15 +63,8 @@ class Package(KeyStore):
         return self._index
 
 
-class VariantDatabase(KeyStore):
-    def __init__(self, path):
-        super(VariantDatabase, self).__init__(path)
-
-    def get(self, key):
-        data = super(VariantDatabase, self).get(key)
-        stream = io.BytesIO(zlib.decompress(data))
-        return sbon.read_dynamic(stream)
-
+class VariantDatabase(KeyStoreCompressed):
+    # TODO: The key encoding for this may be SBON-encoded SHA-256 hash.
     def open(self):
         super(VariantDatabase, self).open()
         assert self.identifier == 'JSON1', 'Unsupported variant database'
@@ -141,7 +141,9 @@ class World(btreedb4.FileBTreeDB4):
 
 def open(path):
     _, extension = os.path.splitext(path)
-    if extension == '.clientcontext':
+    if extension == '.chunks':
+        file = KeyStoreCompressed(path)
+    elif extension in ('.clientcontext', '.dat'):
         file = sbvj01.FileSBVJ01(path)
     elif extension == '.db':
         file = VariantDatabase(path)
