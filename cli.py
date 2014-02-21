@@ -64,9 +64,10 @@ def get_value(file, key_path):
     else:
         raise ValueError('--get-value requires a player or world file')
 
-    key_parts = key_path.split('.')
-    for key in key_parts:
-        data = data[key]
+    if key_path != '.':
+        key_parts = key_path.split('.')
+        for key in key_parts:
+            data = data[key]
     print key_path, '=', pprint.pformat(data)
 
 
