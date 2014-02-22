@@ -59,7 +59,10 @@ def main():
         # Only print the pure data if --raw is specified.
         if options.raw:
             if options.entities:
-                print json.dumps(world.get_entities(x, y))
+                print json.dumps(world.get_entities(x, y),
+                                 indent=2,
+                                 separators=(',', ': '),
+                                 sort_keys=True)
             else:
                 print world.get_region_data(x, y)
             return
@@ -71,7 +74,7 @@ def main():
 
         if options.entities:
             data = world.get_entities(x, y)
-            print json.dumps(data, indent=2, sort_keys=True, separators=(',', ': '))
+            print json.dumps(data, indent=2, separators=(',', ': '), sort_keys=True)
         else:
             pretty_print_tiles(world, x, y)
 

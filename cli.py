@@ -73,7 +73,7 @@ def get_value(file, key_path):
         key_parts = key_path.split('.')
         for key in key_parts:
             data = data[key]
-    print key_path, '=', json.dumps(data, indent=2)
+    print key_path, '=', json.dumps(data, indent=2, separators=(',', ': '), sort_keys=True)
 
 
 def main():
