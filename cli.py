@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import binascii
+import json
 import optparse
-import pprint
 import signal
 import struct
 import sys
@@ -73,7 +73,7 @@ def get_value(file, key_path):
         key_parts = key_path.split('.')
         for key in key_parts:
             data = data[key]
-    print key_path, '=', pprint.pformat(data)
+    print key_path, '=', json.dumps(data, indent=2)
 
 
 def main():
