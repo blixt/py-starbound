@@ -57,7 +57,11 @@ def get_file_list(file):
 
 def get_leaf(file, hex_key):
     """Gets the data in the specified leaf."""
-    print file.get_using_encoded_key(binascii.unhexlify(hex_key))
+    data = file.get_using_encoded_key(binascii.unhexlify(hex_key))
+    if isinstance(data, (dict, list, tuple)):
+        print json.dumps(data, indent=2, separators=(',', ': '), sort_keys=True)
+    else:
+        print data
 
 def get_value(file, key_path):
     """Get a value out of the file's metadata"""
