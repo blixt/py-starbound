@@ -1,3 +1,4 @@
+import binascii
 import bisect
 import io
 import struct
@@ -25,7 +26,36 @@ class FileBTreeDB4(sbbf02.FileSBBF02):
         self.root_node = None
         self.root_node_is_leaf = None
 
+    def deserialize_data(self, data):
+        """Can be overridden to deserialize data before returning it.
+
+        """
+        return data
+
+    def encode_key(self, key):
+        """Can be overridden to encode a key before looking for it in the
+        database (for example if the key needs to be hashed).
+
+        """
+        return key
+
     def get(self, key):
+        """Returns the deserialized data for the provided key.
+
+        """
+        encoded_key = self.encode_key(key)
+        try:
+            return self.deserialize_data(self.get_binary(encoded_key))
+        except KeyError:
+            if encoded_key == key:
+                raise KeyError(binascii.hexlify(key))
+            else:
+                raise KeyError(key, binascii.hexlify(encoded_key))
+
+    def get_binary(self, key):
+        """Returns the binary data for the provided pre-encoded key.
+
+        """
         assert self.is_open(), 'Tried to get from closed file'
         assert len(key) == self.key_size, 'Invalid key length'
 
@@ -53,6 +83,18 @@ class FileBTreeDB4(sbbf02.FileSBBF02):
                 return value
 
         raise KeyError(key)
+
+    def get_raw(self, key):
+        """Returns the raw data for the provided key.
+
+        """
+        return self.get_binary(self.encode_key(key))
+
+    def get_using_encoded_key(self, key):
+        """Returns the deserialized data for the provided pre-encoded key.
+
+        """
+        return self.deserialize_data(self.get_binary(key))
 
     def open(self):
         super(FileBTreeDB4, self).open()
