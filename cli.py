@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import binascii
 import optparse
 import pprint
 import signal
@@ -54,6 +55,10 @@ def get_file_list(file):
     assert isinstance(file, starbound.Package), 'Can only get file list out of packages'
     print '\n'.join(file.get_index())
 
+def get_leaf(file, hex_key):
+    """Gets the data in the specified leaf."""
+    print file.get_using_encoded_key(binascii.unhexlify(hex_key))
+
 def get_value(file, key_path):
     """Get a value out of the file's metadata"""
 
@@ -81,6 +86,9 @@ def main():
                  action='store_true', default=False,
                  help=get_file_list.__doc__)
 
+    p.add_option('-d', '--get-leaf', dest='leaf_key',
+                 help=get_leaf.__doc__)
+
     p.add_option('-g', '--get-value', dest='key',
                  help=get_value.__doc__)
 
@@ -101,6 +109,10 @@ def main():
 
             if options.get_file_list:
                 get_file_list(file)
+                print
+
+            if options.leaf_key:
+                get_leaf(file, options.leaf_key)
                 print
 
             if options.key:
