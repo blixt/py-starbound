@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import hashlib
 import optparse
 import os
 import sys
@@ -7,8 +8,7 @@ import sys
 import starbound
 
 def path_key(path):
-    # TODO: If Starbound fixes their SHA-256 algorithm, switch to hashlib.
-    return starbound.sha256(path.encode('utf-8')).digest()
+    return hashlib.sha256(path.encode('utf-8')).digest()
 
 def main():
     p = optparse.OptionParser()
