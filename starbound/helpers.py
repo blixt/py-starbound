@@ -147,6 +147,30 @@ class World(btreedb4.FileBTreeDB4):
         assert self.identifier == 'World2', 'Tried to open non-world BTreeDB4 file'
 
 
+class FailedWorld(World):
+    def __init__(self, path):
+        super(FailedWorld, self).__init__(path)
+        self.repair = True
+
+    def get_metadata(self):
+        try:
+            stream = io.BytesIO(self.get_raw(World.METADATA_KEY))
+        except:
+            stream = btreedb4.LeafReader.last_buffer
+            stream.seek(0)
+
+        # Not sure what these values mean.
+        unknown_1, unknown_2 = struct.unpack('>ii', stream.read(8))
+
+        name, version, data = sbon.read_document(stream, True)
+        assert name == 'WorldMetadata', 'Invalid world data'
+
+        self._metadata = data
+        self._metadata_version = version
+
+        return data, version
+
+
 def open(path):
     _, extension = os.path.splitext(path)
     if extension == '.chunks':
@@ -155,6 +179,8 @@ def open(path):
         file = sbvj01.FileSBVJ01(path)
     elif extension == '.db':
         file = VariantDatabase(path)
+    elif extension == '.fail':
+        file = FailedWorld(path)
     elif extension in ('.modpak', '.pak'):
         file = Package(path)
     elif extension == '.player':

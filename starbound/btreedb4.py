@@ -22,6 +22,9 @@ class FileBTreeDB4(sbbf02.FileSBBF02):
 
         self.key_size = None
 
+        # Set this attribute to True to make reading more forgiving.
+        self.repair = False
+
         self.alternate_root_node = None
         self.root_node = None
         self.root_node_is_leaf = None
@@ -160,6 +163,18 @@ class BTreeLeaf(sbbf02.Block):
         return 'Leaf(next_block={})'.format(self.next_block)
 
 
+class BTreeRestoredLeaf(BTreeLeaf):
+    def __init__(self, free_block):
+        assert isinstance(free_block, sbbf02.BlockFree), 'Expected free block'
+        self.data = free_block.raw_data[:-4]
+
+        value, = struct.unpack('>i', free_block.raw_data[-4:])
+        self.next_block = value if value != -1 else None
+
+    def __str__(self):
+        return 'RestoredLeaf(next_block={})'.format(self.next_block)
+
+
 class LeafReader(object):
     """A pseudo-reader that will cross over block boundaries if necessary.
 
@@ -183,6 +198,10 @@ class LeafReader(object):
 
         buffer = io.BytesIO()
 
+        # If the file is in repair mode, make the buffer available globally.
+        if self._file.repair:
+            LeafReader.last_buffer = buffer
+
         # Exhaust current leaf.
         num_read = buffer.write(self._leaf.data[offset:])
         length -= num_read
@@ -190,8 +209,15 @@ class LeafReader(object):
         # Keep moving onto the next leaf until we have read the desired amount.
         while length > 0:
             assert self._leaf.next_block is not None, 'Tried to read too far'
-            self._leaf = self._file.get_block(self._leaf.next_block)
-            assert isinstance(self._leaf, BTreeLeaf), 'Leaf pointed to non-leaf @ %s' % buffer.tell()
+
+            next_block = self._leaf.next_block
+            self._leaf = self._file.get_block(next_block)
+            if self._file.repair and isinstance(self._leaf, sbbf02.BlockFree):
+                self._leaf = BTreeRestoredLeaf(self._leaf)
+
+            assert isinstance(self._leaf, BTreeLeaf), \
+                'Leaf pointed to non-leaf %s after reading %d byte(s)' % (
+                        next_block, buffer.tell())
 
             num_read = buffer.write(self._leaf.data[:length])
             length -= num_read

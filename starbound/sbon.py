@@ -27,14 +27,14 @@ def read_bytes(stream):
     length = read_varlen_number(stream)
     return stream.read(length)
 
-def read_document(stream):
+def read_document(stream, repair=False):
     name = read_string(stream)
 
     # Not sure what this part is.
     assert stream.read(1) == '\x01'
 
     version = struct.unpack('>i', stream.read(4))[0]
-    data = read_dynamic(stream)
+    data = read_dynamic(stream, repair)
 
     return Document(name, version, data)
 
@@ -42,24 +42,30 @@ def read_document_list(stream):
     length = read_varlen_number(stream)
     return [read_document(stream) for _ in xrange(length)]
 
-def read_dynamic(stream):
+def read_dynamic(stream, repair=False):
     type = ord(stream.read(1))
-    if type == 1:
-        return None
-    elif type == 2:
-        format = '>d'
-    elif type == 3:
-        format = '?'
-    elif type == 4:
-        return read_varlen_number_signed(stream)
-    elif type == 5:
-        return read_string(stream)
-    elif type == 6:
-        return read_list(stream)
-    elif type == 7:
-        return read_map(stream)
-    else:
-        raise ValueError('Unknown dynamic type 0x%02X' % type)
+
+    try:
+        if type == 1:
+            return None
+        elif type == 2:
+            format = '>d'
+        elif type == 3:
+            format = '?'
+        elif type == 4:
+            return read_varlen_number_signed(stream)
+        elif type == 5:
+            return read_string(stream)
+        elif type == 6:
+            return read_list(stream, repair)
+        elif type == 7:
+            return read_map(stream, repair)
+        else:
+            raise ValueError('Unknown dynamic type 0x%02X' % type)
+    except:
+        if repair:
+            return None
+        raise
 
     # Anything that passes through is assumed to have set a format to unpack.
     return struct.unpack(format, stream.read(struct.calcsize(format)))[0]
@@ -67,17 +73,17 @@ def read_dynamic(stream):
 def read_fixlen_string(stream, length):
     return stream.read(length).rstrip('\x00').decode('utf-8')
 
-def read_list(stream):
+def read_list(stream, repair=False):
     length = read_varlen_number(stream)
-    return [read_dynamic(stream) for _ in xrange(length)]
+    return [read_dynamic(stream, repair) for _ in xrange(length)]
 
-def read_map(stream):
+def read_map(stream, repair=False):
     length = read_varlen_number(stream)
 
     value = dict()
     for _ in xrange(length):
         key = read_string(stream)
-        value[key] = read_dynamic(stream)
+        value[key] = read_dynamic(stream, repair)
 
     return value
 

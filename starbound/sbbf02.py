@@ -45,10 +45,11 @@ class Block(object):
 class BlockFree(Block):
     SIGNATURE = 'FF'
 
-    __slots__ = ['next_free_block']
+    __slots__ = ['next_free_block', 'raw_data']
 
     def __init__(self, file):
-        value, = struct.unpack('>i', file.read(4))
+        self.raw_data = file.read(file.block_size - 2)
+        value, = struct.unpack('>i', self.raw_data[:4])
         self.next_free_block = value if value != -1 else None
 
     def __str__(self):
