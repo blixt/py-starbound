@@ -38,12 +38,16 @@ def print_leaves(file, block_number=None, depth=0, prefix=None):
     if isinstance(block, starbound.btreedb4.BTreeLeaf):
         stream = starbound.btreedb4.LeafReader(file, block)
         num_keys, = struct.unpack('>i', stream.read(4))
-        for _ in xrange(num_keys):
-            cur_key = stream.read(file.key_size)
-            value_length = starbound.sbon.read_varlen_number(stream)
-            value = stream.read(value_length)
-            sys.stdout.write('    ' * (depth + 1))
-            print cur_key.encode('hex'), '=', len(value), 'byte(s)'
+
+        indent = '    ' * (depth + 1)
+        try:
+            for _ in xrange(num_keys):
+                cur_key = stream.read(file.key_size)
+                value_length = starbound.sbon.read_varlen_number(stream)
+                print indent + '%s = %s byte(s)' % (cur_key.encode('hex'), value_length)
+                value = stream.read(value_length)
+        except Exception, e:
+            print indent + '!!! CORRUPT (%s)' % e
 
 def get_file(file, filename):
     """Get the contents of a file in a package."""

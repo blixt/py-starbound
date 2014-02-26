@@ -191,7 +191,7 @@ class LeafReader(object):
         while length > 0:
             assert self._leaf.next_block is not None, 'Tried to read too far'
             self._leaf = self._file.get_block(self._leaf.next_block)
-            assert isinstance(self._leaf, BTreeLeaf), 'Leaf pointed to non-leaf'
+            assert isinstance(self._leaf, BTreeLeaf), 'Leaf pointed to non-leaf @ %s' % buffer.tell()
 
             num_read = buffer.write(self._leaf.data[:length])
             length -= num_read
