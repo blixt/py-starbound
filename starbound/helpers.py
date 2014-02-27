@@ -57,7 +57,11 @@ class Package(KeyStore):
             return self._index
 
         stream = io.BytesIO(self.get(Package.INDEX_KEY))
-        self._index = sbon.read_string_list(stream)
+        if self.identifier == 'Assets1':
+            self._index = sbon.read_string_list(stream)
+        elif self.identifier == 'Assets2':
+            self._index = sbon.read_string_key_map(stream)
+
         return self._index
 
 
