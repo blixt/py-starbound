@@ -11,8 +11,12 @@ import starbound
 import starbound.btreedb4
 import starbound.sbon
 
-# Don't break on pipe signal.
-signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+try:
+    # Don't break on pipe signal.
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+except:
+    # Probably a Windows machine.
+    pass
 
 def print_leaves(file, block_number=None, depth=0, prefix=None):
     """Prints out the full B-tree of accessible leaves"""

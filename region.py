@@ -6,8 +6,12 @@ import signal
 
 import starbound
 
-# Don't break on pipe signal.
-signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+try:
+    # Don't break on pipe signal.
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+except:
+    # Probably a Windows machine.
+    pass
 
 def main():
     p = optparse.OptionParser()
