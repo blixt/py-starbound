@@ -97,8 +97,8 @@ def read_string_list(stream):
     length = read_varlen_number(stream)
     return [read_string(stream) for _ in xrange(length)]
 
-def read_string_key_map(stream):
-    """Special structure of string/key pairs, used by the assets database.
+def read_string_digest_map(stream):
+    """Special structure of string/digest pairs, used by the assets database.
 
     """
     length = read_varlen_number(stream)
@@ -108,8 +108,8 @@ def read_string_key_map(stream):
         path = read_string(stream)
         # Unnecessary whitespace.
         stream.seek(1, 1)
-        key = stream.read(32)
-        value[path] = key
+        digest = stream.read(32)
+        value[path] = digest
 
     return value
 

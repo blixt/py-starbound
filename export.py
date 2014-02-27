@@ -1,14 +1,10 @@
 #!/usr/bin/env python
 
-import hashlib
 import optparse
 import os
 import sys
 
 import starbound
-
-def path_key(path):
-    return hashlib.sha256(path.encode('utf-8')).digest()
 
 def main():
     p = optparse.OptionParser()
@@ -28,8 +24,8 @@ def main():
 
         print 'Loading index...'
 
-        # Get the paths in the order of their keys in the database.
-        paths = sorted(package.get_index(), key=path_key)
+        # Get the paths from the index in the database.
+        paths = list(package.get_index())
 
         print 'Index loaded. Extracting %d files...' % len(paths)
 

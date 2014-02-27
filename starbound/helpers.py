@@ -60,7 +60,7 @@ class Package(KeyStore):
         if self.identifier == 'Assets1':
             self._index = sbon.read_string_list(stream)
         elif self.identifier == 'Assets2':
-            self._index = sbon.read_string_key_map(stream)
+            self._index = sbon.read_string_digest_map(stream)
 
         return self._index
 
