@@ -45,10 +45,10 @@ def main():
         metadata, version = world.get_metadata()
         if version == 1:
             size = metadata['planet']['size']
-            spawn = metadata['playerStart']
+            spawn = metadata.get('playerStart')
         elif version == 2:
             size = metadata['worldTemplate']['size']
-            spawn = metadata['playerStart']
+            spawn = metadata.get('playerStart')
         else:
             raise NotImplementedError('Unsupported metadata version %d' % version)
 
@@ -68,7 +68,8 @@ def main():
             return
 
         print 'World size:          %d by %d regions' % (size[0] / 32, size[1] / 32)
-        print 'Spawn point region:  %d, %d' % (spawn[0] // 32, spawn[1] // 32)
+        if spawn:
+            print 'Spawn point region:  %d, %d' % (spawn[0] // 32, spawn[1] // 32)
         print 'Outputting region:   %d, %d' % (x, y)
         print
 
