@@ -40,7 +40,7 @@ def read_document(stream, repair=False):
 
 def read_document_list(stream):
     length = read_varlen_number(stream)
-    return [read_document(stream) for _ in range(length)]
+    return [read_document(stream) for _ in xrange(length)]
 
 def read_dynamic(stream, repair=False):
     type = ord(stream.read(1))
@@ -75,13 +75,13 @@ def read_fixlen_string(stream, length):
 
 def read_list(stream, repair=False):
     length = read_varlen_number(stream)
-    return [read_dynamic(stream, repair) for _ in range(length)]
+    return [read_dynamic(stream, repair) for _ in xrange(length)]
 
 def read_map(stream, repair=False):
     length = read_varlen_number(stream)
 
     value = dict()
-    for _ in range(length):
+    for _ in xrange(length):
         key = read_string(stream)
         value[key] = read_dynamic(stream, repair)
 
@@ -95,7 +95,7 @@ def read_string_list(stream):
 
     """
     length = read_varlen_number(stream)
-    return [read_string(stream) for _ in range(length)]
+    return [read_string(stream) for _ in xrange(length)]
 
 def read_string_digest_map(stream):
     """Special structure of string/digest pairs, used by the assets database.
@@ -104,7 +104,7 @@ def read_string_digest_map(stream):
     length = read_varlen_number(stream)
 
     value = dict()
-    for _ in range(length):
+    for _ in xrange(length):
         path = read_string(stream)
         # Unnecessary whitespace.
         stream.seek(1, 1)

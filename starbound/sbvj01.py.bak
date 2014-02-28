@@ -1,5 +1,5 @@
-from . import sbon
-from . import filebase
+import sbon
+import filebase
 
 
 class FileSBVJ01(filebase.File):

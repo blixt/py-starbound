@@ -3,8 +3,8 @@ import bisect
 import io
 import struct
 
-from . import sbbf02
-from . import sbon
+import sbbf02
+import sbon
 
 
 class FileBTreeDB4(sbbf02.FileSBBF02):
@@ -78,7 +78,7 @@ class FileBTreeDB4(sbbf02.FileSBBF02):
         # The number of keys is read on-demand because only leaves pointed to
         # by an index contain this number (others just contain arbitrary data).
         num_keys, = struct.unpack('>i', stream.read(4))
-        for i in range(num_keys):
+        for i in xrange(num_keys):
             cur_key = stream.read(self.key_size)
             value = sbon.read_bytes(stream)
 
@@ -132,7 +132,7 @@ class BTreeIndex(sbbf02.Block):
         self.keys = []
         self.values = [left_block]
 
-        for i in range(self.num_keys):
+        for i in xrange(self.num_keys):
             key = file.read(file.key_size)
             block, = struct.unpack('>i', file.read(4))
 

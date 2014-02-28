@@ -1,7 +1,7 @@
 import io
 import struct
 
-from . import filebase
+import filebase
 
 
 class BlockMeta(type):
@@ -23,9 +23,9 @@ class BlockMeta(type):
         return cls
 
 
-# This is a hacky way of implementing the metaclass, but it works for both
-# Python 2.x and 3.
-class Block(BlockMeta('Block', (object,), {})):
+class Block(object):
+    __metaclass__ = BlockMeta
+
     types = dict()
 
     @staticmethod
