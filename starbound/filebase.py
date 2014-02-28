@@ -28,7 +28,7 @@ class File(object):
 
     def open(self):
         assert self._stream is None, 'File is already open'
-        stream = open(self.path)
+        stream = open(self.path, 'rb')
         self._stream = stream
 
     def read(self, length):

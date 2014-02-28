@@ -32,7 +32,7 @@ class Block(BlockMeta('Block', (object,), {})):
     def read(file):
         signature = file.read(2)
 
-        if signature == '\x00\x00':
+        if signature == b'\x00\x00':
             return None
 
         if signature not in Block.types:
@@ -43,7 +43,7 @@ class Block(BlockMeta('Block', (object,), {})):
 
 
 class BlockFree(Block):
-    SIGNATURE = 'FF'
+    SIGNATURE = b'FF'
 
     __slots__ = ['next_free_block', 'raw_data']
 
@@ -82,7 +82,7 @@ class FileSBBF02(filebase.File):
         super(FileSBBF02, self).open()
         stream = self._stream
 
-        assert stream.read(6) == 'SBBF02', 'Invalid file format'
+        assert stream.read(6) == b'SBBF02', 'Invalid file format'
 
         # Block header data.
         fields = struct.unpack('>ii?i', stream.read(13))

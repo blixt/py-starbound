@@ -31,7 +31,7 @@ def read_document(stream, repair=False):
     name = read_string(stream)
 
     # Not sure what this part is.
-    assert stream.read(1) == '\x01'
+    assert stream.read(1) == b'\x01'
 
     version = struct.unpack('>i', stream.read(4))[0]
     data = read_dynamic(stream, repair)
@@ -71,7 +71,7 @@ def read_dynamic(stream, repair=False):
     return struct.unpack(format, stream.read(struct.calcsize(format)))[0]
 
 def read_fixlen_string(stream, length):
-    return stream.read(length).rstrip('\x00').decode('utf-8')
+    return stream.read(length).rstrip(b'\x00').decode('utf-8')
 
 def read_list(stream, repair=False):
     length = read_varlen_number(stream)

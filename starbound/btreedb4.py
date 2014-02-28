@@ -122,7 +122,7 @@ class FileBTreeDB4(sbbf02.FileSBBF02):
 
 
 class BTreeIndex(sbbf02.Block):
-    SIGNATURE = 'II'
+    SIGNATURE = b'II'
 
     __slots__ = ['keys', 'level', 'num_keys', 'values']
 
@@ -148,7 +148,7 @@ class BTreeIndex(sbbf02.Block):
 
 
 class BTreeLeaf(sbbf02.Block):
-    SIGNATURE = 'LL'
+    SIGNATURE = b'LL'
 
     __slots__ = ['data', 'next_block']
 

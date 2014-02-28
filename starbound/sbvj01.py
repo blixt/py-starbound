@@ -13,7 +13,7 @@ class FileSBVJ01(filebase.File):
         """
         super(FileSBVJ01, self).open()
 
-        assert self.read(6) == 'SBVJ01', 'Invalid file format'
+        assert self.read(6) == b'SBVJ01', 'Invalid file format'
         self.identifier, self.version, self.data = sbon.read_document(self._stream)
 
         # Technically, we could already close the file at this point. Need to
