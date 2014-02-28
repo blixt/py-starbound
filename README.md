@@ -81,7 +81,7 @@ function `open_file`:
 ```python
 import starbound
 player = starbound.open_file('player/11475cedd80ead373c19a91de2e2c4d3.player')
-print 'Hello, %s!' % player.name
+print('Hello, %s!' % player.name)
 ```
 
 The `open_file` function will look at the file extension and choose the
@@ -96,12 +96,12 @@ world = starbound.FileBTreeDB4('universe/beta_73998977_11092106_-913658_12_10.wo
 world.open()
 
 # Get the raw data out of the database, then parse it.
-raw_data = world.get('\x00\x00\x00\x00\x00')
+raw_data = world.get(b'\x00\x00\x00\x00\x00')
 stream = io.BytesIO(raw_data)
 stream.seek(8) # Ignore prefix
-name, data = starbound.sbon.read_document(stream)
+name, version, data = starbound.sbon.read_document(stream)
 
-print data['planet']['size']
+print(data['worldTemplate']['size'])
 ```
 
 
