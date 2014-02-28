@@ -50,7 +50,7 @@ def main():
         if version == 1:
             size = metadata['planet']['size']
             spawn = metadata.get('playerStart')
-        elif version == 2:
+        elif version == 2 or version == 3:
             size = metadata['worldTemplate']['size']
             spawn = metadata.get('playerStart')
         else:
