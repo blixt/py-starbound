@@ -30,7 +30,7 @@ def main():
         print 'Index loaded. Extracting %d files...' % len(paths)
 
         num_files = 0
-        percentage_count = len(paths) // 100
+        percentage_count = max(len(paths) // 100, 1)
 
         for path in paths:
             dest_path = base + path
