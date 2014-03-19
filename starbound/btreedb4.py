@@ -126,7 +126,7 @@ class BTreeIndex(sbbf02.Block):
 
     __slots__ = ['keys', 'level', 'num_keys', 'values']
 
-    def __init__(self, file):
+    def __init__(self, file, block_index):
         self.level, self.num_keys, left_block = struct.unpack('>Bii', file.read(9))
 
         self.keys = []
@@ -152,7 +152,7 @@ class BTreeLeaf(sbbf02.Block):
 
     __slots__ = ['data', 'next_block']
 
-    def __init__(self, file):
+    def __init__(self, file, block_index):
         # Substract 6 for signature and next_block.
         self.data = file.read(file.block_size - 6)
 

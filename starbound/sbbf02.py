@@ -28,8 +28,10 @@ class BlockMeta(type):
 class Block(BlockMeta('Block', (object,), {})):
     types = dict()
 
+    __slots__ = ['index']
+
     @staticmethod
-    def read(file):
+    def read(file, block_index):
         signature = file.read(2)
 
         if signature == b'\x00\x00':
@@ -39,7 +41,9 @@ class Block(BlockMeta('Block', (object,), {})):
             raise ValueError('Unrecognized block type')
 
         # Return a new instance of the appropriate block type.
-        return Block.types[signature](file)
+        block = Block.types[signature](file, block_index)
+        block.index = block_index
+        return block
 
 
 class BlockFree(Block):
@@ -47,7 +51,7 @@ class BlockFree(Block):
 
     __slots__ = ['next_free_block', 'raw_data']
 
-    def __init__(self, file):
+    def __init__(self, file, block_index):
         self.raw_data = file.read(file.block_size - 2)
         value, = struct.unpack('>i', self.raw_data[:4])
         self.next_free_block = value if value != -1 else None
@@ -67,9 +71,9 @@ class FileSBBF02(filebase.File):
         self.free_block_is_dirty = None
         self.free_block = None
 
-    def get_block(self, block):
-        self._stream.seek(self.header_size + self.block_size * block)
-        return Block.read(self)
+    def get_block(self, block_index):
+        self._stream.seek(self.header_size + self.block_size * block_index)
+        return Block.read(self, block_index)
 
     def get_user_header(self):
         assert self.is_open(), 'File must be open to get user header'
