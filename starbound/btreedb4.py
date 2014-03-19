@@ -78,6 +78,7 @@ class FileBTreeDB4(sbbf02.FileSBBF02):
         # The number of keys is read on-demand because only leaves pointed to
         # by an index contain this number (others just contain arbitrary data).
         num_keys, = struct.unpack('>i', stream.read(4))
+        assert num_keys < 100, 'Leaf had unexpectedly high number of keys'
         for i in range(num_keys):
             cur_key = stream.read(self.key_size)
             value = sbon.read_bytes(stream)
