@@ -10,6 +10,13 @@ from . import sbvj01
 from . import sbon
 
 
+# Override range with xrange when running Python 2.x.
+try:
+    range = xrange
+except:
+    pass
+
+
 class KeyStore(btreedb4.FileBTreeDB4):
     """A B-tree database that uses SHA-256 hashes for key lookup.
 

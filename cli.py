@@ -18,6 +18,12 @@ except:
     # Probably a Windows machine.
     pass
 
+# Override range with xrange when running Python 2.x.
+try:
+    range = xrange
+except:
+    pass
+
 def print_leaves(file, block_number=None, depth=0, prefix=None):
     """Prints out the full B-tree of accessible leaves"""
 
@@ -45,7 +51,7 @@ def print_leaves(file, block_number=None, depth=0, prefix=None):
 
         indent = '    ' * (depth + 1)
         try:
-            for _ in xrange(num_keys):
+            for _ in range(num_keys):
                 cur_key = stream.read(file.key_size)
                 value_length = starbound.sbon.read_varlen_number(stream)
                 print indent + '%s = %s byte(s)' % (cur_key.encode('hex'), value_length)
