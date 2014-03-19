@@ -35,6 +35,15 @@ class FileBTreeDB4(sbbf02.FileSBBF02):
         self.alternate_root_node = None
         self.root_node = None
         self.root_node_is_leaf = None
+        self.other_root_node = None
+        self.other_root_node_is_leaf = None
+
+    def commit(self):
+        """Alternates the root node.
+
+        """
+        self.root_node, self.other_root_node = self.other_root_node, self.root_node
+        self.alternate_root_node = not self.alternate_root_node
 
     def deserialize_data(self, data):
         """Can be overridden to deserialize data before returning it.
@@ -125,8 +134,10 @@ class FileBTreeDB4(sbbf02.FileSBBF02):
         self.alternate_root_node = fields[1]
         if self.alternate_root_node:
             self.root_node, self.root_node_is_leaf = fields[4:6]
+            self.other_root_node, self.other_root_node_is_leaf = fields[2:4]
         else:
             self.root_node, self.root_node_is_leaf = fields[2:4]
+            self.other_root_node, self.other_root_node_is_leaf = fields[4:6]
 
 
 class BTreeIndex(sbbf02.Block):
