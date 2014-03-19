@@ -49,6 +49,9 @@ class Package(KeyStore):
         super(Package, self).__init__(path)
         self._index = None
 
+    def encode_key(self, key):
+        return super(Package, self).encode_key(key.lower())
+
     def get_digest(self):
         return self.get(Package.DIGEST_KEY)
 
