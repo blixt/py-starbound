@@ -14,7 +14,7 @@ except:
     pass
 
 def main():
-    p = optparse.OptionParser()
+    p = optparse.OptionParser('Usage: %prog [<x> <y>] <path>')
 
     p.add_option('-c', '--tile-coords', dest='tile_coords',
                  action='store_true', default=False,
@@ -42,7 +42,7 @@ def main():
             x //= 32
             y //= 32
     else:
-        raise ValueError('Usage: ./region.py <x> <y> <path>')
+        p.error('Incorrect number of arguments')
 
     with starbound.open_file(path) as world:
         # Get information about the world.
@@ -54,7 +54,7 @@ def main():
             size = metadata['worldTemplate']['size']
             spawn = metadata.get('playerStart')
         else:
-            raise NotImplementedError('Unsupported metadata version %d' % version)
+            p.error('Unsupported metadata version %d' % version)
 
         # Default coordinates to spawn point.
         if x is None or y is None:
