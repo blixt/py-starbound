@@ -180,7 +180,7 @@ class LeafReader(object):
     """A pseudo-reader that will cross over block boundaries if necessary.
 
     """
-    __slots__ = ['_file', '_leaf', '_offset']
+    __slots__ = ['_file', '_leaf', '_offset', '_visited']
 
     def __init__(self, file, leaf):
         assert isinstance(file, FileBTreeDB4), 'File is not a FileBTreeDB4 instance'
@@ -189,6 +189,7 @@ class LeafReader(object):
         self._file = file
         self._leaf = leaf
         self._offset = 0
+        self._visited = [leaf.index]
 
     def read(self, length):
         offset = self._offset
@@ -209,9 +210,12 @@ class LeafReader(object):
 
         # Keep moving onto the next leaf until we have read the desired amount.
         while length > 0:
-            assert self._leaf.next_block is not None, 'Tried to read too far'
-
             next_block = self._leaf.next_block
+
+            assert next_block is not None, 'Tried to read too far'
+            assert next_block not in self._visited, 'Tried to read visited block'
+            self._visited.append(next_block)
+
             self._leaf = self._file.get_block(next_block)
             if self._file.repair and isinstance(self._leaf, sbbf02.BlockFree):
                 self._leaf = BTreeRestoredLeaf(self._leaf)
