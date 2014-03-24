@@ -292,32 +292,44 @@ def main():
             new_ranges[(min_key, max_key)] = len(blocks)
             blocks.append(index_data.getvalue().ljust(world.block_size, b'\x00'))
 
-        print 'Created %d index(es) for level %d' % (len(new_ranges), level)
+        print '- Created %d index(es) for level %d' % (len(new_ranges), level)
         return new_ranges
 
+    # Build the indexes in multiple levels up to a single root node.
+    print 'Creating root node...'
     root_is_leaf = True
     level = 0
-
     current_index = range_to_leaf
     while len(current_index) > 1:
         current_index = build_index_level(current_index, level)
         root_is_leaf = False
         level += 1
-
     root_node = current_index.itervalues().next()
 
+    # Also build an alternative root node.
+    print 'Creating alternate root node...'
+    alternate_root_is_leaf = True
+    level = 0
+    current_index = range_to_leaf
+    while len(current_index) > 1:
+        current_index = build_index_level(current_index, level)
+        alternate_root_is_leaf = False
+        level += 1
+    alternate_root_node = current_index.itervalues().next()
+
     # The last block will be a free block.
-    blocks.append(b'FF' + b'\x00' * (world.block_size - 2))
+    blocks.append(b'FF\xFF\xFF\xFF\xFF' + b'\x00' * (world.block_size - 6))
 
     print 'Writing all the data to disk...'
 
     with open(out_name, 'w') as f:
         f.write(b'SBBF02')
-        f.write(struct.pack('>ii?i', world.header_size, world.block_size, False, len(blocks) - 1))
+        f.write(struct.pack('>ii?i', world.header_size, world.block_size, True, len(blocks) - 1))
         f.write('\x00' * (32 - f.tell()))
         f.write(b'BTreeDB4\x00\x00\x00\x00')
         f.write(world.identifier + '\x00' * (12 - len(world.identifier)))
-        f.write(struct.pack('>i?xi?xxxi?', world.key_size, False, root_node, root_is_leaf, -1, False))
+        f.write(struct.pack('>i?xi?xxxi?', world.key_size, False, root_node, root_is_leaf,
+                            alternate_root_node, alternate_root_is_leaf))
         f.write('\x00' * (world.header_size - f.tell()))
 
         for block in blocks:
