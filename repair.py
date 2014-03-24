@@ -96,7 +96,6 @@ def main():
             try:
                 print 'warning: restoring metadata using blank world'
                 metadata, version = blank_world.get_metadata()
-                data['\x00\x00\x00\x00\x00'] = blank_world.get_raw((0, 0, 0))
             except Exception as e:
                 p.error('Failed to restore metadata (%s)' % e)
         else:
@@ -113,7 +112,7 @@ def main():
     regions_y = int(math.ceil(size[1] / 32))
     print 'Attempting to recover %d×%d regions...' % (regions_x, regions_y)
 
-    blocks_per_percent = world.num_blocks // 100
+    blocks_per_percent = world.num_blocks // 100 + 1
     entries_recovered = 0
     percent = 0
 
@@ -140,7 +139,8 @@ def main():
         for i in range(num_keys):
             try:
                 cur_key = stream.read(world.key_size)
-            except:
+                cur_data = starbound.sbon.read_bytes(stream)
+            except Exception:
                 break
 
             layer, x, y = struct.unpack('>BHH', cur_key)
@@ -165,12 +165,9 @@ def main():
                         pass
                     world.commit()
 
-            # Load the data from this leaf.
+            # Use the data from this leaf if not using the index.
             if not result:
-                try:
-                    result = starbound.sbon.read_bytes(stream)
-                except Exception:
-                    continue
+                result = cur_data
 
             # Validate the data before storing it.
             # TODO: This is where we would do the tile replace.
@@ -196,6 +193,25 @@ def main():
                 entries_recovered += 1
 
             data[cur_key] = result
+
+    METADATA_KEY = '\x00\x00\x00\x00\x00'
+
+    # Ensure that the metadata key is in the data.
+    if METADATA_KEY not in data:
+        if options.world:
+            try:
+                data[METADATA_KEY] = blank_world.get_raw((0, 0, 0))
+            except Exception:
+                p.error('Failed to recover metadata from alternate world')
+        else:
+            if options.force:
+                try:
+                    data[METADATA_KEY] = world.get_raw((0, 0, 0))
+                    print 'warning: using partially recovered metadata'
+                except Exception:
+                    p.error('Failed to recover partial metadata')
+            else:
+                p.error('Failed to recover metadata, use -f to recover partial')
 
     print 'Done! %d entries recovered. Creating BTree database...' % entries_recovered
 
