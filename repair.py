@@ -86,6 +86,9 @@ def main():
         except Exception as e:
             p.error('Could not open blank world (%s)' % e)
 
+    # This dict will contain all the keys and their data.
+    data = dict()
+
     try:
         metadata, version = world.get_metadata()
     except Exception as e:
@@ -93,6 +96,7 @@ def main():
             try:
                 print 'warning: restoring metadata using blank world'
                 metadata, version = blank_world.get_metadata()
+                data['\x00\x00\x00\x00\x00'] = blank_world.get_raw((0, 0, 0))
             except Exception as e:
                 p.error('Failed to restore metadata (%s)' % e)
         else:
@@ -112,9 +116,6 @@ def main():
     blocks_per_percent = world.num_blocks // 100
     entries_recovered = 0
     percent = 0
-
-    # This dict will contain all the keys and their data.
-    data = dict()
 
     # Find all leaves and try to read them individually.
     for index in range(world.num_blocks):
