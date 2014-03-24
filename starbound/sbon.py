@@ -145,3 +145,25 @@ def read_varlen_number_signed(stream):
         return -(value >> 1)
     else:
         return value >> 1
+
+def write_bytes(stream, bytes):
+    write_varlen_number(stream, len(bytes))
+    stream.write(bytes)
+
+def write_varlen_number(stream, value):
+    if value == 0:
+        stream.write('\x00')
+        return
+
+    pieces = []
+    while value:
+        x, value = value & 0b01111111, value >> 7
+        if len(pieces):
+            x |= 0b10000000
+        pieces.insert(0, chr(x))
+
+    stream.write(''.join(pieces))
+
+def write_varlen_number_signed(stream, value):
+    has_sign = 1 if value < 0 else 0
+    write_varlen_number(stream, value << 1 | has_sign)
