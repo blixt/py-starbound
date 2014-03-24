@@ -70,6 +70,7 @@ class FileSBBF02(filebase.File):
         self.header_size = None
         self.free_block_is_dirty = None
         self.free_block = None
+        self.num_blocks = None
 
     def get_block(self, block_index):
         self._stream.seek(self.header_size + self.block_size * block_index)
@@ -94,6 +95,10 @@ class FileSBBF02(filebase.File):
         self.block_size = fields[1]
         self.free_block_is_dirty = fields[2]
         self.free_block = fields[3]
+
+        # Calculate the number of blocks in the file.
+        stream.seek(0, 2)
+        self.num_blocks = (stream.tell() - self.header_size) // self.block_size
 
         # Read the user header data.
         stream.seek(32)
