@@ -11,6 +11,12 @@ up issues with suggestions and/or bugs.
 Repairing broken worlds (.fail files)
 -------------------------------------
 
+**Note:** It's *always* better to back up your `.world` files at
+regular intervals. This tool is only meant to be a last resort if you
+lost your world completely. It might only be able to recover parts of
+a world, and if the metadata is corrupt, your world might not work
+properly in the future.
+
 To repair a failed world, try to run this command to see if it works:
 
 ```bash
