@@ -8,6 +8,30 @@ Feel free to contribute either via submitting pull requests or writing
 up issues with suggestions and/or bugs.
 
 
+Repairing broken worlds (.fail files)
+-------------------------------------
+
+To repair a failed world, try to run this command to see if it works:
+
+```bash
+./repair.py --output=repaired.world /path/to/world.fail
+```
+
+If that works, then you can overwrite the new world file that Starbound
+created (after your world failed) with `repaired.world`.
+
+If it fails to load the metadata section, then you can have the repair
+script pull in the metadata from another world. It's highly recommended
+that you only use either another `.fail` file of the same world, or the
+newly created `.world` file that Starbound creates when a world fails.
+
+Here's how:
+
+```bash
+./repair.py -o repaired.world -w /path/to/other.world /path/to/world.fail
+```
+
+
 Using the command line interface
 --------------------------------
 
