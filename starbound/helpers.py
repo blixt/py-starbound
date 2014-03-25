@@ -186,7 +186,7 @@ class FailedWorld(World):
 
 
 def open(path):
-    _, extension = os.path.splitext(path)
+    extension = os.path.splitext(path)[1]
     if extension == '.chunks':
         file = CelestialChunks(path)
     elif extension in ('.clientcontext', '.dat'):
@@ -197,9 +197,9 @@ def open(path):
         file = FailedWorld(path)
     elif extension in ('.modpak', '.pak'):
         file = Package(path)
-    elif extension == '.player':
+    elif extension in ('.player', '.plr'):
         file = Player(path)
-    elif extension in ('.shipworld', '.world'):
+    elif extension in ('.shipworld', '.shp', '.world', '.wld'):
         file = World(path)
     else:
         raise ValueError('Unrecognized file extension')
