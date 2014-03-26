@@ -185,32 +185,47 @@ class FailedWorld(World):
         return data, version
 
 
+fext2fmt = {
+    # filename extensions used by Starbound:
+    'chunks':         CelestialChunks,
+    'clientcontext':  sbvj01.FileSBVJ01,
+    'dat':            sbvj01.FileSBVJ01,
+    'db':             VariantDatabase,
+    'fail':           FailedWorld,
+    'modpak':         Package,
+    'pak':            Package,
+    'player':         Player,
+    'shipworld':      World,
+    'world':          World,
+
+    # additional generic filenames extensions:
+    'sbon':           sbvj01.FileSBVJ01,
+
+    # additional filename extensions to shorten symlink names:
+    'plr':            Player,
+    'shp':            World,
+    'wld':            World,
+    }
+
+
 def open(path, dataformat = None):
     """Read the file named `path` using the selected `dataformat`, or guess
     from filename extension if `dataformat` is unspecified or `None`.
 
     """
-    dataformat = None
-    if filetype is None:
+    if dataformat is None:
         # guess by filename extension:
         dataformat = os.path.splitext(path)[1].lstrip('.')
-        print "guessed dataformat:", dataformat
-    if dataformat == '.chunks':
-        file = CelestialChunks(path)
-    elif dataformat in ('.clientcontext', '.dat'):
-        file = sbvj01.FileSBVJ01(path)
-    elif dataformat == '.db':
-        file = VariantDatabase(path)
-    elif dataformat == '.fail':
-        file = FailedWorld(path)
-    elif dataformat in ('.modpak', '.pak'):
-        file = Package(path)
-    elif dataformat in ('.player', '.plr'):
-        file = Player(path)
-    elif dataformat in ('.shipworld', '.shp', '.world', '.wld'):
-        file = World(path)
+        DataFormatClass = fext2fmt.get(dataformat, None)
+        if DataFormatClass is None:
+            raise ValueError(
+                'Failed to guess data format: Unknown file name extension',
+                dataformat)
     else:
-        raise ValueError('Unrecognized file extension')
+        DataFormatClass = fext2fmt.get(dataformat, None)
+        if DataFormatClass is None:
+            raise ValueError('Unsupported data format name', dataformat)
 
+    file = DataFormatClass(path)
     file.open()
     return file
