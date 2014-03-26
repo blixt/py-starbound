@@ -185,21 +185,29 @@ class FailedWorld(World):
         return data, version
 
 
-def open(path):
-    extension = os.path.splitext(path)[1]
-    if extension == '.chunks':
+def open(path, dataformat = None):
+    """Read the file named `path` using the selected `dataformat`, or guess
+    from filename extension if `dataformat` is unspecified or `None`.
+
+    """
+    dataformat = None
+    if filetype is None:
+        # guess by filename extension:
+        dataformat = os.path.splitext(path)[1].lstrip('.')
+        print "guessed dataformat:", dataformat
+    if dataformat == '.chunks':
         file = CelestialChunks(path)
-    elif extension in ('.clientcontext', '.dat'):
+    elif dataformat in ('.clientcontext', '.dat'):
         file = sbvj01.FileSBVJ01(path)
-    elif extension == '.db':
+    elif dataformat == '.db':
         file = VariantDatabase(path)
-    elif extension == '.fail':
+    elif dataformat == '.fail':
         file = FailedWorld(path)
-    elif extension in ('.modpak', '.pak'):
+    elif dataformat in ('.modpak', '.pak'):
         file = Package(path)
-    elif extension in ('.player', '.plr'):
+    elif dataformat in ('.player', '.plr'):
         file = Player(path)
-    elif extension in ('.shipworld', '.shp', '.world', '.wld'):
+    elif dataformat in ('.shipworld', '.shp', '.world', '.wld'):
         file = World(path)
     else:
         raise ValueError('Unrecognized file extension')
