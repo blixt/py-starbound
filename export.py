@@ -42,8 +42,10 @@ def main():
             try:
                 data = package.get(path)
             except:
-                print
-                print 'Failed to read', path
+                # break the dots in case std{out,err} are the same tty:
+                sys.stdout.write('\n')
+                sys.stdout.flush()
+                print >>sys.stderr, 'W: Failed to read', path
                 continue
 
             with open(dest_path, 'w') as file:
