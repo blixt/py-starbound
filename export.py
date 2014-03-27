@@ -48,7 +48,7 @@ def main():
                 print >>sys.stderr, 'W: Failed to read', path
                 continue
 
-            with open(dest_path, 'w') as file:
+            with open(dest_path, 'wb') as file:
                 file.write(data)
 
             num_files += 1
