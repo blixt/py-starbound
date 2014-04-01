@@ -103,12 +103,17 @@ def main():
         else:
             p.error('Metadata section is corrupt (%s)' % e)
 
-    if version == 1:
-        size = metadata['planet']['size']
-    elif version in (2, 3):
-        size = metadata['worldTemplate']['size']
-    else:
-        p.error('Unsupported metadata version %d' % version)
+    try:
+        if version == 1:
+            size = metadata['planet']['size']
+        elif version in (2, 3):
+            size = metadata['worldTemplate']['size']
+        else:
+            size = [-1, -1]
+            print('warning: unsupported metadata version %d' % version)
+    except Exception as e:
+        size = [-1, -1]
+        print('warning: failed to read world size (%s)' % e)
 
     regions_x = int(math.ceil(size[0] / 32))
     regions_y = int(math.ceil(size[1] / 32))
@@ -196,7 +201,7 @@ def main():
 
             data[cur_key] = result
 
-    METADATA_KEY = '\x00\x00\x00\x00\x00'
+    METADATA_KEY = b'\x00\x00\x00\x00\x00'
 
     # Ensure that the metadata key is in the data.
     if METADATA_KEY not in data:
@@ -213,7 +218,8 @@ def main():
                 except Exception:
                     p.error('Failed to recover partial metadata')
             else:
-                p.error('Failed to recover metadata, use -f to recover partial')
+                p.error('Failed to recover metadata, use -w to load metadata '
+                        'from another world, or -f to attempt partial recovery')
 
     print('Done! %d entries recovered. Creating BTree database...' % entries_recovered)
 
