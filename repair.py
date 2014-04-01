@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
 import io
 import math
 import optparse
@@ -67,7 +69,7 @@ def main():
 
     if os.path.isfile(out_name):
         if options.force:
-            print 'warning: overwriting existing file'
+            print('warning: overwriting existing file')
         else:
             p.error('"%s" already exists' % out_name)
 
@@ -77,7 +79,7 @@ def main():
 
         if fail_name[:len(world_name)] != world_name:
             if options.force:
-                print 'warning: .fail and .world filenames do not match'
+                print('warning: .fail and .world filenames do not match')
             else:
                 p.error('.fail and .world filenames do not match')
 
@@ -94,7 +96,7 @@ def main():
     except Exception as e:
         if options.world:
             try:
-                print 'warning: restoring metadata using blank world'
+                print('warning: restoring metadata using blank world')
                 metadata, version = blank_world.get_metadata()
             except Exception as e:
                 p.error('Failed to restore metadata (%s)' % e)
@@ -110,7 +112,7 @@ def main():
 
     regions_x = int(math.ceil(size[0] / 32))
     regions_y = int(math.ceil(size[1] / 32))
-    print 'Attempting to recover %d×%d regions...' % (regions_x, regions_y)
+    print('Attempting to recover %d×%d regions...' % (regions_x, regions_y))
 
     blocks_per_percent = world.num_blocks // 100 + 1
     entries_recovered = 0
@@ -119,7 +121,7 @@ def main():
     # Find all leaves and try to read them individually.
     for index in range(world.num_blocks):
         if index % blocks_per_percent == 0:
-            print '%d%% (%d entries recovered)' % (percent, entries_recovered)
+            print('%d%% (%d entries recovered)' % (percent, entries_recovered))
             percent += 1
 
         block = world.get_block(index)
@@ -207,13 +209,13 @@ def main():
             if options.force:
                 try:
                     data[METADATA_KEY] = world.get_raw((0, 0, 0))
-                    print 'warning: using partially recovered metadata'
+                    print('warning: using partially recovered metadata')
                 except Exception:
                     p.error('Failed to recover partial metadata')
             else:
                 p.error('Failed to recover metadata, use -f to recover partial')
 
-    print 'Done! %d entries recovered. Creating BTree database...' % entries_recovered
+    print('Done! %d entries recovered. Creating BTree database...' % entries_recovered)
 
     # Try not to exceed this number of keys per leaf.
     LEAF_KEYS_TRESHOLD = 10
@@ -283,7 +285,7 @@ def main():
         range_to_leaf[(min_key, key)] = len(blocks)
         dump_buffer()
 
-    print 'Created %d blocks containing world data' % len(blocks)
+    print('Created %d blocks containing world data' % len(blocks))
 
     def build_index_level(range_to_block, level=0):
         # Get a list of ranges that this index level needs to point to.
@@ -308,11 +310,11 @@ def main():
             new_ranges[(min_key, max_key)] = len(blocks)
             blocks.append(index_data.getvalue().ljust(world.block_size, b'\x00'))
 
-        print '- Created %d index(es) for level %d' % (len(new_ranges), level)
+        print('- Created %d index(es) for level %d' % (len(new_ranges), level))
         return new_ranges
 
     # Build the indexes in multiple levels up to a single root node.
-    print 'Creating root node...'
+    print('Creating root node...')
     root_is_leaf = True
     level = 0
     current_index = range_to_leaf
@@ -323,7 +325,7 @@ def main():
     root_node = current_index.itervalues().next()
 
     # Also build an alternative root node.
-    print 'Creating alternate root node...'
+    print('Creating alternate root node...')
     alternate_root_is_leaf = True
     level = 0
     current_index = range_to_leaf
@@ -336,7 +338,7 @@ def main():
     # The last block will be a free block.
     blocks.append(b'FF\xFF\xFF\xFF\xFF' + b'\x00' * (world.block_size - 6))
 
-    print 'Writing all the data to disk...'
+    print('Writing all the data to disk...')
 
     with open(out_name, 'w') as f:
         f.write(b'SBBF02')
@@ -351,7 +353,7 @@ def main():
         for block in blocks:
             f.write(block)
 
-    print 'Done!'
+    print('Done!')
 
 if __name__ == '__main__':
     main()
