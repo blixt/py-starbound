@@ -267,7 +267,7 @@ def main():
     range_to_leaf = dict()
 
     # All the keys, sorted (important).
-    keys = sorted(data.keys())
+    keys = sorted(data)
 
     # Build all the leaf blocks.
     min_key = None
@@ -295,7 +295,7 @@ def main():
 
     def build_index_level(range_to_block, level=0):
         # Get a list of ranges that this index level needs to point to.
-        index_ranges = sorted(range_to_block.keys())
+        index_ranges = sorted(range_to_block)
 
         # The new list of ranges that the next level of indexes can use.
         new_ranges = dict()
@@ -328,7 +328,7 @@ def main():
         current_index = build_index_level(current_index, level)
         root_is_leaf = False
         level += 1
-    root_node = current_index.itervalues().next()
+    root_node = list(current_index.values())[0]
 
     # Also build an alternative root node.
     print('Creating alternate root node...')
@@ -339,22 +339,22 @@ def main():
         current_index = build_index_level(current_index, level)
         alternate_root_is_leaf = False
         level += 1
-    alternate_root_node = current_index.itervalues().next()
+    alternate_root_node = list(current_index.values())[0]
 
     # The last block will be a free block.
     blocks.append(b'FF\xFF\xFF\xFF\xFF' + b'\x00' * (world.block_size - 6))
 
     print('Writing all the data to disk...')
 
-    with open(out_name, 'w') as f:
+    with open(out_name, 'wb') as f:
         f.write(b'SBBF02')
         f.write(struct.pack('>ii?i', world.header_size, world.block_size, True, len(blocks) - 1))
-        f.write('\x00' * (32 - f.tell()))
+        f.write(b'\x00' * (32 - f.tell()))
         f.write(b'BTreeDB4\x00\x00\x00\x00')
-        f.write(world.identifier + '\x00' * (12 - len(world.identifier)))
+        f.write(world.identifier.encode('utf-8') + b'\x00' * (12 - len(world.identifier)))
         f.write(struct.pack('>i?xi?xxxi?', world.key_size, False, root_node, root_is_leaf,
                             alternate_root_node, alternate_root_is_leaf))
-        f.write('\x00' * (world.header_size - f.tell()))
+        f.write(b'\x00' * (world.header_size - f.tell()))
 
         for block in blocks:
             f.write(block)
