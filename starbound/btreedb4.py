@@ -24,8 +24,8 @@ class FileBTreeDB4(sbbf02.FileSBBF02):
     inheritance chain and instead use the SBBF02 file as an API.
 
     """
-    def __init__(self, path):
-        super(FileBTreeDB4, self).__init__(path)
+    def __init__(self, stream):
+        super(FileBTreeDB4, self).__init__(stream)
 
         self.key_size = None
 
@@ -75,7 +75,6 @@ class FileBTreeDB4(sbbf02.FileSBBF02):
         """Returns the binary data for the provided pre-encoded key.
 
         """
-        assert self.is_open(), 'Tried to get from closed file'
         assert len(key) == self.key_size, 'Invalid key length'
 
         block = self.get_block(self.root_node)
@@ -116,8 +115,8 @@ class FileBTreeDB4(sbbf02.FileSBBF02):
         """
         return self.deserialize_data(self.get_binary(key))
 
-    def open(self):
-        super(FileBTreeDB4, self).open()
+    def initialize(self):
+        super(FileBTreeDB4, self).initialize()
         stream = self.get_user_header()
 
         # Require that the format of the content is BTreeDB4.

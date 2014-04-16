@@ -40,8 +40,8 @@ class CelestialChunks(KeyStoreCompressed):
         stream = io.BytesIO(data)
         return sbon.read_document(stream)
 
-    def open(self):
-        super(CelestialChunks, self).open()
+    def initialize(self):
+        super(CelestialChunks, self).initialize()
         assert self.identifier == 'Celestial2', 'Unsupported celestial chunks file'
 
 
@@ -89,8 +89,8 @@ class VariantDatabase(KeyStoreCompressed):
         # TODO: The key encoding for this may be SBON-encoded SHA-256 hash.
         return super(VariantDatabase, self).encode_key(key)
 
-    def open(self):
-        super(VariantDatabase, self).open()
+    def initialize(self):
+        super(VariantDatabase, self).initialize()
         assert self.identifier == 'JSON1', 'Unsupported variant database'
 
 
@@ -102,8 +102,8 @@ class Player(sbvj01.FileSBVJ01):
         super(Player, self).__init__(path)
         self.name = None
 
-    def open(self):
-        super(Player, self).open()
+    def initialize(self):
+        super(Player, self).initialize()
         assert self.identifier == 'PlayerEntity', 'Invalid player file'
         self.name = self.data['identity']['name']
 
@@ -118,8 +118,8 @@ class World(btreedb4.FileBTreeDB4):
     TILES_Y = 32
     TILES_PER_REGION = TILES_X * TILES_Y
 
-    def __init__(self, path):
-        super(World, self).__init__(path)
+    def __init__(self, stream):
+        super(World, self).__init__(stream)
         self._metadata = None
         self._metadata_version = None
 
@@ -156,14 +156,14 @@ class World(btreedb4.FileBTreeDB4):
         # There are 1024 (32x32) tiles in a region.
         return [sbon.read_tile(stream) for _ in range(World.TILES_PER_REGION)]
 
-    def open(self):
-        super(World, self).open()
+    def initialize(self):
+        super(World, self).initialize()
         assert self.identifier == 'World2', 'Tried to open non-world BTreeDB4 file'
 
 
 class FailedWorld(World):
-    def __init__(self, path):
-        super(FailedWorld, self).__init__(path)
+    def __init__(self, stream):
+        super(FailedWorld, self).__init__(stream)
         self.repair = True
 
     def get_metadata(self):
@@ -188,21 +188,21 @@ class FailedWorld(World):
 def open(path):
     _, extension = os.path.splitext(path)
     if extension == '.chunks':
-        file = CelestialChunks(path)
+        file = CelestialChunks.open(path)
     elif extension in ('.clientcontext', '.dat'):
-        file = sbvj01.FileSBVJ01(path)
+        file = sbvj01.FileSBVJ01.open(path)
     elif extension == '.db':
-        file = VariantDatabase(path)
+        file = VariantDatabase.open(path)
     elif extension == '.fail':
-        file = FailedWorld(path)
+        file = FailedWorld.open(path)
     elif extension in ('.modpak', '.pak'):
-        file = Package(path)
+        file = Package.open(path)
     elif extension == '.player':
-        file = Player(path)
+        file = Player.open(path)
     elif extension in ('.shipworld', '.world'):
-        file = World(path)
+        file = World.open(path)
     else:
         raise ValueError('Unrecognized file extension')
 
-    file.open()
+    file.initialize()
     return file
