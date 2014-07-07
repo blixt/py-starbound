@@ -1,5 +1,5 @@
-import hashlib
 import binascii
+import hashlib
 import io
 import os
 import struct
@@ -9,6 +9,10 @@ from . import btreedb4
 from . import sbvj01
 from . import sbon
 
+try:
+    import builtins
+except:
+    import __builtin__ as builtins
 
 # Override range with xrange when running Python 2.x.
 try:
@@ -185,24 +189,32 @@ class FailedWorld(World):
         return data, version
 
 
-def open(path):
-    _, extension = os.path.splitext(path)
-    if extension == '.chunks':
-        file = CelestialChunks.open(path)
-    elif extension in ('.clientcontext', '.dat'):
-        file = sbvj01.FileSBVJ01.open(path)
-    elif extension == '.db':
-        file = VariantDatabase.open(path)
-    elif extension == '.fail':
-        file = FailedWorld.open(path)
-    elif extension in ('.modpak', '.pak'):
-        file = Package.open(path)
-    elif extension == '.player':
-        file = Player.open(path)
-    elif extension in ('.shipworld', '.world'):
-        file = World.open(path)
-    else:
-        raise ValueError('Unrecognized file extension')
+EXTENSION_TO_CLASS = dict(
+    chunks=CelestialChunks,
+    clientcontext=sbvj01.FileSBVJ01,
+    dat=sbvj01.FileSBVJ01,
+    db=VariantDatabase,
+    fail=FailedWorld,
+    modpak=Package,
+    pak=Package,
+    player=Player,
+    shipworld=World,
+    world=World,
+)
 
+
+def open(path, override_extension=None):
+    """Read the file located at the specified path. The file format will be
+    guessed from the extension, or (if provided) using the extension override.
+
+    """
+    extension = override_extension or os.path.splitext(path)[1][1:]
+    return read_stream(builtins.open(path, 'rb'), extension)
+
+def read_stream(stream, extension):
+    cls = EXTENSION_TO_CLASS.get(extension)
+    if not cls:
+        raise ValueError('Unsupported file extension "%s"' % extension)
+    file = cls(stream)
     file.initialize()
     return file
