@@ -7,11 +7,11 @@ class FileSBVJ01(filebase.File):
         super(FileSBVJ01, self).__init__(path)
         self.data = None
 
-    def open(self):
-        """Opens the file and reads its contents.
+    def initialize(self):
+        """Reads the file contents into a data dict.
 
         """
-        super(FileSBVJ01, self).open()
+        super(FileSBVJ01, self).initialize()
 
         assert self.read(6) == b'SBVJ01', 'Invalid file format'
         self.identifier, self.version, self.data = sbon.read_document(self._stream)

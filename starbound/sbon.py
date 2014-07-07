@@ -152,7 +152,7 @@ def write_bytes(stream, bytes):
 
 def write_varlen_number(stream, value):
     if value == 0:
-        stream.write('\x00')
+        stream.write(b'\x00')
         return
 
     pieces = []
@@ -160,11 +160,11 @@ def write_varlen_number(stream, value):
         x, value = value & 0b01111111, value >> 7
         if len(pieces):
             x |= 0b10000000
-        pieces.insert(0, chr(x))
+        pieces.insert(0, x)
         if len(pieces) > 4096:
-            raise ValueError('Number too huge or negative')
+            raise ValueError('Number too large')
 
-    stream.write(''.join(pieces))
+    stream.write(struct.pack('%dB' % len(pieces), *pieces))
 
 def write_varlen_number_signed(stream, value):
     has_sign = 1 if value < 0 else 0

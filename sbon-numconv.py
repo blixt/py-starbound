@@ -164,7 +164,6 @@ def bufconvert(fmt, nums):
     fmt = str(fmt)
     while len(fmt) > 0:
         step, fmt = fmt[0], fmt[1:]
-        # print 'cvb:', repr(step), 'remain:', repr(fmt)
         if step == '{':
             bufstack.append(buf)
             buf = io.BytesIO()
@@ -184,44 +183,38 @@ def bufconvert(fmt, nums):
             # print '%:', repr(step), 'remain:', repr(fmt)
             buf.write(chr(int(step, 16)))
             continue
-        if step in ("'", '"',):
+        if step in ("'", '"'):
             step, fmt = fmt.split(step, 1)
             buf.write(step.encode('UTF-8'))
             continue
+
         try:
             step = out_ops[step]
         except KeyError:
-            raise KeyError('unsupported output format', step)
+            raise KeyError('Unsupported output format', step)
+
         step(buf, nums.pop(0))
-    if len(bufstack) > 0:
-        raise AssertionError('too many buffers on stack')
+
+    assert len(bufstack) == 0, 'Too many buffers on stack'
+
     return buf
 
 
-in_ops = {
-    'd': read_dec_int,
-    'i': read_prefix_int,
-    'x': read_hex_int,
-    'v': sbon.read_varlen_number,
-    'V': sbon.read_varlen_number_signed,
-    }
-out_ops = {
-    'd': write_dec_int,
-    'x': write_hex_int,
-    'c': write_char,
-    'v': sbon.write_varlen_number,
-    'V': sbon.write_varlen_number_signed,
-    }
+in_ops = dict(
+    d=read_dec_int,
+    i=read_prefix_int,
+    x=read_hex_int,
+    v=sbon.read_varlen_number,
+    V=sbon.read_varlen_number_signed,
+)
 
-
-
-
-
-
-
-
-
-
+out_ops = dict(
+    d=write_dec_int,
+    x=write_hex_int,
+    c=write_char,
+    v=sbon.write_varlen_number,
+    V=sbon.write_varlen_number_signed,
+)
 
 
 if __name__ == '__main__':

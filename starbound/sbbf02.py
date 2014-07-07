@@ -61,8 +61,8 @@ class BlockFree(Block):
 
 
 class FileSBBF02(filebase.File):
-    def __init__(self, path):
-        super(FileSBBF02, self).__init__(path)
+    def __init__(self, stream):
+        super(FileSBBF02, self).__init__(stream)
 
         self._user_header = None
 
@@ -77,14 +77,13 @@ class FileSBBF02(filebase.File):
         return Block.read(self, block_index)
 
     def get_user_header(self):
-        assert self.is_open(), 'File must be open to get user header'
         return io.BytesIO(self._user_header)
 
-    def open(self):
-        """Opens the file and reads its header data.
+    def initialize(self):
+        """Reads the header data.
 
         """
-        super(FileSBBF02, self).open()
+        super(FileSBBF02, self).initialize()
         stream = self._stream
 
         assert stream.read(6) == b'SBBF02', 'Invalid file format'

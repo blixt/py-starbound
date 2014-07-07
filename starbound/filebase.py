@@ -1,35 +1,26 @@
 class File(object):
-    def __init__(self, path):
-        self._stream = None
+    @classmethod
+    def open(cls, path):
+        return cls(open(path, 'rb'))
 
-        self.path = path
+    def __init__(self, stream):
+        self._stream = stream
         self.identifier = None
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if self.is_open():
-            self.close()
+        self.close()
 
     def __str__(self):
-        if self.is_open():
-            return 'open File(identifier="{}", path="{}")'.format(self.identifier, self.path)
-        else:
-            return 'closed File(path="{}")'.format(self.path)
+        return 'File(identifier=%r, stream=%r)' % (self.identifier, self._stream)
 
     def close(self):
-        assert self._stream, 'File is not open'
         self._stream.close()
-        self._stream = None
 
-    def is_open(self):
-        return self._stream is not None
-
-    def open(self):
-        assert self._stream is None, 'File is already open'
-        stream = open(self.path, 'rb')
-        self._stream = stream
+    def initialize(self):
+        self._stream.seek(0)
 
     def read(self, length):
         return self._stream.read(length)
