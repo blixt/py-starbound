@@ -6,6 +6,7 @@ from . import sbon
 
 from .helpers import (
     open as open_file,
+    read_stream,
     FailedWorld,
     KeyStore,
     Package,
