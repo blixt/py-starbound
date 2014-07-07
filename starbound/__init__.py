@@ -7,9 +7,12 @@ from . import sbon
 from .helpers import (
     open as open_file,
     read_stream,
+    CelestialChunks,
     FailedWorld,
     KeyStore,
+    KeyStoreCompressed,
     Package,
     Player,
+    VariantDatabase,
     World,
 )
