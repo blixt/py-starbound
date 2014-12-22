@@ -144,7 +144,7 @@ You can use the `export.py` script to extract all the files in a `.pak`
 Example:
 
 ```bash
-./extract.py -d assets /Starbound/assets/packed.pak
+./export.py -d assets /Starbound/assets/packed.pak
 ```
 
 
