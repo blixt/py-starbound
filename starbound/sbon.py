@@ -121,8 +121,12 @@ def read_string_digest_map(stream):
 
     return value
 
-def read_tile(stream):
-    values = struct.unpack('>hBBhBhBBhBBHBhBB?', stream.read(23))
+def read_tile(world_version, stream):
+    if world_version < 6:
+        values = struct.unpack('>hBBhBhBBhBBHBhBB?', stream.read(23))
+    else:
+        # TODO: Figure out what the new values mean.
+        values = struct.unpack('>hBBhBhBBhBBHBhBB?xxxxxxx', stream.read(30))
     return Tile(*values)
 
 def read_varlen_number(stream):

@@ -50,11 +50,9 @@ def main():
         if version == 1:
             size = metadata['planet']['size']
             spawn = metadata.get('playerStart')
-        elif version == 2 or version == 3:
+        else:
             size = metadata['worldTemplate']['size']
             spawn = metadata.get('playerStart')
-        else:
-            p.error('Unsupported metadata version %d' % version)
 
         # Default coordinates to spawn point.
         if x is None or y is None:

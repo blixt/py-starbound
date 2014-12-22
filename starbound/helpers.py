@@ -158,7 +158,8 @@ class World(btreedb4.FileBTreeDB4):
         stream = io.BytesIO(self.get((1, x, y)))
         unknown = stream.read(3)
         # There are 1024 (32x32) tiles in a region.
-        return [sbon.read_tile(stream) for _ in range(World.TILES_PER_REGION)]
+        return [sbon.read_tile(self._metadata_version, stream)
+                for _ in range(World.TILES_PER_REGION)]
 
     def initialize(self):
         super(World, self).initialize()
