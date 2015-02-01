@@ -140,11 +140,13 @@ def pretty_print_tiles(world, x, y, index=0):
         value = tile[index]
 
         # Create a uniquely colored block with the tile value.
-        bg_color = abs(value) % 255
-        fg_color = abs(255 - bg_color * 6) % 255
         if isinstance(value, (int, long)):
+            bg_color = abs(value) % 255
+            fg_color = abs(255 - bg_color * 6) % 255
             line += '\033[48;5;%dm\033[38;5;%dm%03X\033[000m' % (bg_color, fg_color, value)
         elif isinstance(value, float):
+            bg_color = abs(int(value * 10)) % 255
+            fg_color = abs(255 - bg_color * 6) % 255
             line += '\033[48;5;%dm\033[38;5;%dm%02X%s\033[000m' % (bg_color, fg_color, int(value),
                                                                    fraction_to_string(value))
         else:
