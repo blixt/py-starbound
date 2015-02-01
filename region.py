@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8
 
 import json
 import optparse
@@ -27,6 +28,10 @@ def main():
     p.add_option('-r', '--raw', dest='raw',
                  action='store_true', default=False,
                  help='Output data in a raw format')
+
+    p.add_option('-v', '--value-index', dest='value_index',
+                 type=int, default=0,
+                 help='The value in the tile data to output')
 
     options, arguments = p.parse_args()
 
@@ -73,13 +78,55 @@ def main():
         if spawn:
             print 'Spawn point region:  %d, %d' % (spawn[0] // 32, spawn[1] // 32)
         print 'Outputting region:   %d, %d' % (x, y)
-        print
 
         if options.entities:
             data = world.get_entities(x, y)
+            print
             print json.dumps(data, indent=2, separators=(',', ': '), sort_keys=True)
         else:
-            pretty_print_tiles(world, x, y)
+            try:
+                print 'Outputting value:    %s' % starbound.sbon.Tile._fields[options.value_index]
+            except:
+                print
+                print 'Unsupported value index! Pick one of these indices:'
+                index = 0
+                for field in starbound.sbon.Tile._fields:
+                    print '> %d (%s)' % (index, field)
+                    index += 1
+            else:
+                print
+                pretty_print_tiles(world, x, y, options.value_index)
+
+
+_fraction_to_string = (
+    (1.0 / 2, '½'),
+    (1.0 / 3, '⅓'),
+    (1.0 / 4, '¼'),
+    (1.0 / 5, '⅕'),
+    (1.0 / 6, '⅙'),
+    (1.0 / 8, '⅛'),
+    (2.0 / 3, '⅔'),
+    (2.0 / 5, '⅖'),
+    (3.0 / 4, '¾'),
+    (3.0 / 5, '⅗'),
+    (3.0 / 8, '⅜'),
+    (4.0 / 5, '⅘'),
+    (5.0 / 6, '⅚'),
+    (5.0 / 8, '⅝'),
+    (7.0 / 8, '⅞'),
+)
+
+def fraction_to_string(number):
+    fraction = number - int(number)
+    string = '?'
+    min_diff = 1.0
+    for value, character in _fraction_to_string:
+        diff = abs(fraction - value)
+        if diff < min_diff:
+            min_diff = diff
+            string = character
+    return string
+
 
 def pretty_print_tiles(world, x, y, index=0):
     lines = []
@@ -95,7 +142,14 @@ def pretty_print_tiles(world, x, y, index=0):
         # Create a uniquely colored block with the tile value.
         bg_color = abs(value) % 255
         fg_color = abs(255 - bg_color * 6) % 255
-        line += '\033[48;5;%dm\033[38;5;%dm%03X\033[000m' % (bg_color, fg_color, value)
+        if isinstance(value, (int, long)):
+            line += '\033[48;5;%dm\033[38;5;%dm%03X\033[000m' % (bg_color, fg_color, value)
+        elif isinstance(value, float):
+            line += '\033[48;5;%dm\033[38;5;%dm%02X%s\033[000m' % (bg_color, fg_color, int(value),
+                                                                   fraction_to_string(value))
+        else:
+            line += '\033[48;5;%dm\033[38;5;%dm???\033[000m' % (bg_color, fg_color)
+    lines.append(line)
 
     print '\n'.join(reversed(lines))
     print
