@@ -23,7 +23,9 @@ Tile = collections.namedtuple('Tile', [
     'background_sprite',
     'background_sprite_hue_shift',
     'liquid',
+    'liquid_amount',
     'liquid_pressure',
+    'liquid_unknown_2',
     'collision',
     'dungeon',
     'biome',
@@ -124,9 +126,10 @@ def read_string_digest_map(stream):
 def read_tile(world_version, stream):
     if world_version < 6:
         values = struct.unpack('>hBBhBhBBhBBHBhBB?', stream.read(23))
+        values = values[:12] + (0, 0) + values[12:]
     else:
         # TODO: Figure out what the new values mean.
-        values = struct.unpack('>hBBhBhBBhBBHBhBB?xxxxxxx', stream.read(30))
+        values = struct.unpack('>hBBhBhBBhBBffBBhBB?', stream.read(30))
     return Tile(*values)
 
 def read_varlen_number(stream):
