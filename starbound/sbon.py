@@ -25,7 +25,7 @@ Tile = collections.namedtuple('Tile', [
     'liquid',
     'liquid_amount',
     'liquid_pressure',
-    'liquid_unknown_2',
+    'liquid_unknown',
     'collision',
     'dungeon',
     'biome',

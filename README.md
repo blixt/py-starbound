@@ -160,17 +160,18 @@ $ ./region.py /Starbound/universe/beta_73998977_11092106_-913658_12_8.world
 World size:          250 by 156 regions
 Spawn point region:  0, 51
 Outputting region:   0, 51
+Outputting value:    foreground_material
 
 # Outputs colored tiles that can't be displayed on here.
 ```
 
-If you don't provide X and Y coordinates before the path, it will
+If you don't provide X and Y coordinates after the path, it will
 default to the region that the spawn point is in.
 
 And here's how to print the entities in a region:
 
 ```bash
-$ ./region.py --entities 249 52 /Starbound/universe/beta_73998977_11092106_-913658_12_8.world
+$ ./region.py --entities /Starbound/universe/beta_73998977_11092106_-913658_12_8.world 249 52
 World size:          250 by 156 regions
 Spawn point region:  0, 51
 Outputting region:   249, 52

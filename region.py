@@ -15,7 +15,7 @@ except:
     pass
 
 def main():
-    p = optparse.OptionParser('Usage: %prog [<x> <y>] <path>')
+    p = optparse.OptionParser('Usage: %prog <world path> [<x> <y>]')
 
     p.add_option('-c', '--tile-coords', dest='tile_coords',
                  action='store_true', default=False,
@@ -40,7 +40,7 @@ def main():
         path = arguments[0]
         x, y = None, None
     elif len(arguments) == 3:
-        x, y, path = arguments
+        path, x, y = arguments
         x, y = int(x), int(y)
 
         if options.tile_coords:
