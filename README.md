@@ -156,17 +156,34 @@ can use the `region.py` script. For example, here's how to pretty print
 the tiles in a region:
 
 ```bash
-$ ./region.py /Starbound/universe/beta_73998977_11092106_-913658_12_8.world
-World size:          250 by 156 regions
-Spawn point region:  0, 51
-Outputting region:   0, 51
+$ ./region.py /Starbound/giraffe_storage/universe/-809143555_95313027_54893405_6_3.world
+World size:          93 by 62 regions
+Spawn point region:  74, 28
+Outputting region:   74, 27
 Outputting value:    foreground_material
-
-# Outputs colored tiles that can't be displayed on here.
 ```
+
+Outputs something like this:
+
+![](http://i.imgur.com/b4ZitYX.png)
 
 If you don't provide X and Y coordinates after the path, it will
 default to the region that the spawn point is in.
+
+You can also output specific tile values (instead of the foreground)
+using `--value-index` (or `-v`):
+
+```bash
+$ ./region.py --value-index=12 /Starbound/giraffe_storage/universe/-809143555_95313027_54893405_6_3.world 69 27
+World size:          93 by 62 regions
+Spawn point region:  74, 28
+Outputting region:   69, 27
+Outputting value:    liquid_pressure
+```
+
+Outputs something like this:
+
+![](http://i.imgur.com/XZ3OYTO.png)
 
 And here's how to print the entities in a region:
 
