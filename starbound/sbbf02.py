@@ -86,7 +86,8 @@ class FileSBBF02(filebase.File):
         super(FileSBBF02, self).initialize()
         stream = self._stream
 
-        assert stream.read(6) == b'SBBF03', 'Invalid file format'
+        header = stream.read(6)
+        assert (header  == b'SBBF02' or header  == b'SBBF03'), 'Invalid file format'
 
         # Block header data.
         fields = struct.unpack('>ii?i', stream.read(13))
