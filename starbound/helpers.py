@@ -2,6 +2,7 @@ import binascii
 import hashlib
 import io
 import os
+import re
 import struct
 import zlib
 
@@ -124,6 +125,8 @@ class World(btreedb4.FileBTreeDB4):
 
     def __init__(self, stream):
         super(World, self).__init__(stream)
+        self.width = None
+        self.height = None
         self._metadata = None
         self._metadata_version = None
 
@@ -141,11 +144,13 @@ class World(btreedb4.FileBTreeDB4):
         if self._metadata:
             return self._metadata, self._metadata_version
 
-        stream = io.BytesIO(self.get_raw(World.METADATA_KEY))
+        # Read the data and decompress it.
+        data = self.get_raw(World.METADATA_KEY)
+        if self._world_version >= 4:
+            data = zlib.decompress(data)
+        stream = io.BytesIO(data)
 
-        # Not sure what these values mean.
-        unknown_1, unknown_2 = struct.unpack('>ii', stream.read(8))
-
+        self.width, self.height = struct.unpack('>ii', stream.read(8))
         name, version, data = sbon.read_document(stream)
         assert name == 'WorldMetadata', 'Invalid world data'
 
@@ -163,7 +168,10 @@ class World(btreedb4.FileBTreeDB4):
 
     def initialize(self):
         super(World, self).initialize()
-        assert self.identifier == 'World2', 'Tried to open non-world BTreeDB4 file'
+        match = re.match('^World(\d+)$', self.identifier)
+        if not match:
+            raise ValueError('Unexpected BTreeDB4 identifier %s' % (self.identifier,))
+        self._world_version = int(match.group(1))
 
 
 class FailedWorld(World):
