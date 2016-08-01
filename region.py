@@ -1,11 +1,14 @@
 #!/usr/bin/env python
-# -*- coding: utf-8
+# -*- coding: utf-8 -*-
 
+import hashlib
 import json
+import mmap
 import optparse
 import signal
 
 import starbound
+
 
 try:
     # Don't break on pipe signal.
@@ -14,27 +17,19 @@ except:
     # Probably a Windows machine.
     pass
 
+
 def main():
     p = optparse.OptionParser('Usage: %prog <world path> [<x> <y>]')
-
-    p.add_option('-c', '--tile-coords', dest='tile_coords',
-                 action='store_true', default=False,
-                 help='X, Y is for a tile instead of a region')
-
     p.add_option('-e', '--entities', dest='entities',
                  action='store_true', default=False,
                  help='Output entity data instead of tile data')
-
     p.add_option('-r', '--raw', dest='raw',
                  action='store_true', default=False,
                  help='Output data in a raw format')
-
     p.add_option('-v', '--value-index', dest='value_index',
                  type=int, default=0,
                  help='The value in the tile data to output')
-
     options, arguments = p.parse_args()
-
     # Get the path and coordinates from arguments.
     if len(arguments) == 1:
         path = arguments[0]
@@ -42,59 +37,49 @@ def main():
     elif len(arguments) == 3:
         path, x, y = arguments
         x, y = int(x), int(y)
-
-        if options.tile_coords:
-            x //= 32
-            y //= 32
     else:
         p.error('Incorrect number of arguments')
-
-    with starbound.open_file(path) as world:
-        # Get information about the world.
-        metadata, version = world.get_metadata()
-        if version == 1:
-            size = metadata['planet']['size']
-            spawn = metadata.get('playerStart')
-        else:
-            size = metadata['worldTemplate']['size']
-            spawn = metadata.get('playerStart')
-
+    # Load up the world file.
+    with open(path, 'rb') as fh:
+        mm = mmap.mmap(fh.fileno(), 0, access=mmap.ACCESS_READ)
+        world = starbound.World(mm)
+        world.read_metadata()
+        spawn = world.metadata['playerStart']
         # Default coordinates to spawn point.
         if x is None or y is None:
             x, y = int(spawn[0] / 32), int(spawn[1] / 32)
-
         # Only print the pure data if --raw is specified.
         if options.raw:
             if options.entities:
-                print json.dumps(world.get_entities(x, y),
+                print(json.dumps(world.get_entities(x, y),
                                  indent=2,
                                  separators=(',', ': '),
-                                 sort_keys=True)
+                                 sort_keys=True))
             else:
-                print world.get_region_data(x, y)
+                print(world.get(1, x, y))
             return
-
-        print 'World size:          %d by %d regions' % (size[0] / 32, size[1] / 32)
+        # Print world metadata.
+        print('World size:        {}×{}'.format(world.width, world.height))
         if spawn:
-            print 'Spawn point region:  %d, %d' % (spawn[0] // 32, spawn[1] // 32)
-        print 'Outputting region:   %d, %d' % (x, y)
-
+            print('Spawn point:       ({}, {})'.format(spawn[0], spawn[1]))
+        print('Outputting region: ({}, {})'.format(x, y))
+        # Print either entities or tile data depending on options.
         if options.entities:
             data = world.get_entities(x, y)
-            print
-            print json.dumps(data, indent=2, separators=(',', ': '), sort_keys=True)
+            print('')
+            print(json.dumps(data, indent=2, separators=(',', ': '), sort_keys=True))
         else:
             try:
-                print 'Outputting value:    %s' % starbound.sbon.Tile._fields[options.value_index]
+                print('Outputting value:  %s' % starbound.Tile._fields[options.value_index])
             except:
-                print
-                print 'Unsupported value index! Pick one of these indices:'
+                print('')
+                print('Unsupported value index! Pick one of these indices:')
                 index = 0
-                for field in starbound.sbon.Tile._fields:
-                    print '> %d (%s)' % (index, field)
+                for field in starbound.Tile._fields:
+                    print('> {} ({})'.format(index, field))
                     index += 1
             else:
-                print
+                print('')
                 pretty_print_tiles(world, x, y, options.value_index)
 
 
@@ -114,7 +99,9 @@ _fraction_to_string = (
     (5.0 / 6, '⅚'),
     (5.0 / 8, '⅝'),
     (7.0 / 8, '⅞'),
+    (1.0 / 100, '.'),
 )
+
 
 def fraction_to_string(number):
     fraction = number - int(number)
@@ -128,6 +115,18 @@ def fraction_to_string(number):
     return string
 
 
+def get_colors(value):
+    # More complicated due to Python 2/3 support.
+    b = hashlib.md5(str(value).encode('utf-8')).digest()[1]
+    x = ord(b) if isinstance(b, str) else b
+    if x < 16:
+        return x, 15 if x < 8 else 0
+    elif x < 232:
+        return x, 15 if (x - 16) % 36 < 18 else 0
+    else:
+        return x, 15 if x < 244 else 0
+
+
 def pretty_print_tiles(world, x, y, index=0):
     lines = []
     line = ''
@@ -136,25 +135,20 @@ def pretty_print_tiles(world, x, y, index=0):
         if i > 0 and i % 32 == 0:
             lines.append(line)
             line = ''
-
         value = tile[index]
-
         # Create a uniquely colored block with the tile value.
-        if isinstance(value, (int, long)):
-            bg_color = abs(value) % 255
-            fg_color = abs(255 - bg_color * 6) % 255
-            line += '\033[48;5;%dm\033[38;5;%dm%03X\033[000m' % (bg_color, fg_color, value)
-        elif isinstance(value, float):
-            bg_color = abs(int(value * 10)) % 255
-            fg_color = abs(255 - bg_color * 6) % 255
-            line += '\033[48;5;%dm\033[38;5;%dm%02X%s\033[000m' % (bg_color, fg_color, int(value),
-                                                                   fraction_to_string(value))
+        if isinstance(value, float):
+            v = '{:02X}{}'.format(int(value), fraction_to_string(value))
         else:
-            line += '\033[48;5;%dm\033[38;5;%dm???\033[000m' % (bg_color, fg_color)
+            v = '{:03X}'.format(value)
+            if len(v) > 3:
+                v = '-…' + v[-1] if value < 0 else '…' + v[-2:]
+        bg, fg = get_colors(value)
+        line += '\033[48;5;{:d}m\033[38;5;{:d}m{}\033[000m'.format(bg, fg, v)
     lines.append(line)
+    print('\n'.join(reversed(lines)))
+    print('')
 
-    print '\n'.join(reversed(lines))
-    print
 
 if __name__ == '__main__':
     main()

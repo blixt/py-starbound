@@ -1,137 +1,52 @@
 Starbound utilities for Python
 ==============================
 
-This is a library to parse Starbound's file formats, SBBF02 and SBVJ01,
-which are used to store worlds, player characters, assets, etc.
+This is a library to parse Starbound's file formats which are used to
+store worlds, player characters, assets, etc.
 
 Feel free to contribute either via submitting pull requests or writing
 up issues with suggestions and/or bugs.
 
 
-Repairing broken worlds (.fail files)
--------------------------------------
-
-**Note:** It's *always* better to back up your `.world` files at
-regular intervals. This tool is only meant to be a last resort if you
-lost your world completely. It might only be able to recover parts of
-a world, and if the metadata is corrupt, your world might not work
-properly in the future.
-
-To repair a failed world, try to run this command to see if it works:
-
-```bash
-./repair.py --output=repaired.world /path/to/world.fail
-```
-
-If that works, then you can overwrite the new world file that Starbound
-created (after your world failed) with `repaired.world`.
-
-If it fails to load the metadata section, then you can have the repair
-script pull in the metadata from another world. It's highly recommended
-that you only use either another `.fail` file of the same world, or the
-newly created `.world` file that Starbound creates when a world fails.
-
-Here's how:
-
-```bash
-./repair.py -o repaired.world -w /path/to/other.world /path/to/world.fail
-```
-
-
-Using the command line interface
---------------------------------
-
-The command line interface will let you inspect various Starbound
-files.
-
-
-### Getting metadata from world or player files
-
-Use the `--get-value` option to retrieve a metadata value. Example:
-
-```bash
-$ ./cli.py --get-value planet.config.gravity /Starbound/player/11475cedd80ead373c19a91de2e2c4d3.shipworld
-open File(identifier="World2", path="/Starbound/player/11475cedd80ead373c19a91de2e2c4d3.shipworld")
-
-planet.config.gravity = 80.0
-```
-
-Another example for getting the name of a player:
-
-```bash
-/cli.py --get-value identity.name /Starbound/player/11475cedd80ead373c19a91de2e2c4d3.player
-open File(identifier="PlayerEntity", path="/Starbound/player/11475cedd80ead373c19a91de2e2c4d3.player")
-
-identity.name = Fleur
-```
-
-
-### Inspecting Starbound packages
-
-Starbound packages are essentially sets of packed (but uncompressed)
-files. Here's how to get the contents of a file in a .pak package:
-
-```bash
-$ ./cli.py --get-file /tiles/mods/sand.matmod /Starbound/assets/packed.pak
-{
-  "modId" : 4,
-  "modName" : "sand",
-  "frames" : "sand.png",
-  "variants" : 5,
-  "Description" : "Scattered sand.",
-  "footstepSound" : "/sfx/blocks/footstep_sand.wav",
-  "health" : 0
-}
-```
-
-You can also get the list of the files in a .pak file:
-
-```bash
-$ ./cli.py --get-file-list /Starbound/assets/packed.pak
-open File(identifier="Assets1", path="/Starbound/assets/packed.pak")
-
-/animations/1hswordhitspark/1hswordhitspark.animation
-/animations/1hswordhitspark/1hswordhitspark.frames
-/animations/1hswordhitspark/1hswordhitspark.png
-/animations/2hswordhitspark/2hswordhitspark.animation
-/animations/2hswordhitspark/2hswordhitspark.frames
-/animations/2hswordhitspark/2hswordhitspark.png
-/animations/axehitspark/axehitspark.animation
-/animations/axehitspark/axehitspark.frames
-# ...and so on.
-```
-
-
 Using the Python package
 ------------------------
 
-The easiest way to get started with the package is to use the helper
-function `open_file`:
+The Python package lets you read data from Starbound's various file
+formats. The classes and functions expect file objects to read from.
+
+You can use the `mmap` package to improve performance for large files,
+such as `packed.pak` and world files.
+
+
+### Example: Reading a player file
+
+Here's how to print the name of a player.
 
 ```python
 import starbound
-player = starbound.open_file('player/11475cedd80ead373c19a91de2e2c4d3.player')
-print('Hello, %s!' % player.name)
+with open('player/11475cedd80ead373c19a91de2e2c4d3.player') as fh:
+  player = starbound.read_sbvj01(fh)
+  print('Hello, {}!'.format(player.data['identity']['name']))
 ```
 
-The `open_file` function will look at the file extension and choose the
-appropriate file format as well as parse additional metadata about that
-file type. To be more specific, you can use the file type classes:
+
+### Example: World files
+
+In the following example the `mmap` package is used for faster access.
 
 ```python
-import io
+import mmap
 import starbound
-
-world = starbound.FileBTreeDB4('universe/beta_73998977_11092106_-913658_12_10.world')
-world.open()
-
-# Get the raw data out of the database, then parse it.
-raw_data = world.get(b'\x00\x00\x00\x00\x00')
-stream = io.BytesIO(raw_data)
-stream.seek(8) # Ignore prefix
-name, version, data = starbound.sbon.read_document(stream)
-
-print(data['worldTemplate']['size'])
+with open('universe/43619853_198908799_-9440367_6_3.world') as fh:
+  mm = mmap.mmap(fh.fileno(), 0, access=mmap.ACCESS_READ)
+  world = starbound.World(mm)
+  world.read_metadata()
+  print('World size: {}×{}'.format(world.width, world.height))
+  x, y = world.metadata['playerStart']
+  print('Player spawns at ({}, {})'.format(x, y))
+  # Regions consist of 32×32 tiles.
+  rx, ry = x // 32, y // 32
+  print('An entity: {}'.format(world.get_entities(rx, ry)[0]))
 ```
 
 
@@ -156,11 +71,11 @@ can use the `region.py` script. For example, here's how to pretty print
 the tiles in a region:
 
 ```bash
-$ ./region.py /Starbound/giraffe_storage/universe/-809143555_95313027_54893405_6_3.world
-World size:          93 by 62 regions
-Spawn point region:  74, 28
-Outputting region:   74, 27
-Outputting value:    foreground_material
+$ ./region.py /Starbound/storage/universe/-382912739_-582615456_-73870035_3.world
+World size:        3000×2000
+Spawn point:       (1224.0, 676.0)
+Outputting region: (37, 21)
+Outputting value:  foreground_material
 ```
 
 Outputs something like this:
@@ -174,11 +89,11 @@ You can also output specific tile values (instead of the foreground)
 using `--value-index` (or `-v`):
 
 ```bash
-$ ./region.py --value-index=12 /Starbound/giraffe_storage/universe/-809143555_95313027_54893405_6_3.world 69 27
-World size:          93 by 62 regions
-Spawn point region:  74, 28
-Outputting region:   69, 27
-Outputting value:    liquid_pressure
+$ ./region.py --value-index=12 /Starbound/storage/universe/-382912739_-582615456_-73870035_3.world 69 27
+World size:        3000×2000
+Spawn point:       (1224.0, 676.0)
+Outputting region: (69, 27)
+Outputting value:  liquid_pressure
 ```
 
 Outputs something like this:
@@ -188,26 +103,32 @@ Outputs something like this:
 And here's how to print the entities in a region:
 
 ```bash
-$ ./region.py --entities /Starbound/universe/beta_73998977_11092106_-913658_12_8.world 249 52
-World size:          250 by 156 regions
-Spawn point region:  0, 51
-Outputting region:   249, 52
+$ ./region.py --entities /Starbound/storage/universe/-382912739_-582615456_-73870035_3.world 69 27
+World size:        3000×2000
+Spawn point:       (1224.0, 676.0)
+Outputting region: (69, 27)
 
 [
   [
     "ObjectEntity",
+    8,
     {
-      "crafting": false,
-      "craftingProgress": 0.0,
-      "currentState": 0,
-      "direction": "right",
-      "initialized": true,
-      "items": [
-        {
-          "count": 100,
-          "data": {},
-          "name": "fabric"
-        },
-        null,
+      "direction": "left",
+      "inputWireNodes": [],
+      "interactive": true,
+      "name": "wiringstation",
+      "orientationIndex": 0,
+      "outputWireNodes": [],
+      "parameters": {
+        "owner": "916d5878483e3a40d10467dc419982c2"
+      },
+      "scriptStorage": {},
 ...
 ```
+
+
+File formats
+------------
+
+Check out [FORMATS.md](./FORMATS.md) for technical information on
+Starbound's file formats.
