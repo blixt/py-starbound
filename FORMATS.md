@@ -131,8 +131,8 @@ Data types:
 * Variable length integer
 * Bytes (varint for length + the bytes)
 * String (bytes with UTF-8 encoding)
-* List (varlen for count, dynamic for values)
-* Map (varlnet for count, string/dynamic pairs for entries)
+* List (varint for count, dynamic for values)
+* Map (varint for count, string/dynamic pairs for entries)
 * Dynamic (byte for type + value)
   * `0x01`: Nil value
   * `0x02`: 64-bit float

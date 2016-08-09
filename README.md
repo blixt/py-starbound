@@ -8,50 +8,17 @@ Feel free to contribute either via submitting pull requests or writing
 up issues with suggestions and/or bugs.
 
 
-Using the Python package
-------------------------
+File & data formats
+-------------------
 
-The Python package lets you read data from Starbound's various file
-formats. The classes and functions expect file objects to read from.
-
-You can use the `mmap` package to improve performance for large files,
-such as `packed.pak` and world files.
+Check out [FORMATS.md](./FORMATS.md) for technical information on
+Starbound's file and data formats.
 
 
-### Example: Reading a player file
+Command line utilities
+----------------------
 
-Here's how to print the name of a player.
-
-```python
-import starbound
-with open('player/11475cedd80ead373c19a91de2e2c4d3.player') as fh:
-  player = starbound.read_sbvj01(fh)
-  print('Hello, {}!'.format(player.data['identity']['name']))
-```
-
-
-### Example: World files
-
-In the following example the `mmap` package is used for faster access.
-
-```python
-import mmap
-import starbound
-with open('universe/43619853_198908799_-9440367_6_3.world') as fh:
-  mm = mmap.mmap(fh.fileno(), 0, access=mmap.ACCESS_READ)
-  world = starbound.World(mm)
-  world.read_metadata()
-  print('World size: {}×{}'.format(world.width, world.height))
-  x, y = world.metadata['playerStart']
-  print('Player spawns at ({}, {})'.format(x, y))
-  # Regions consist of 32×32 tiles.
-  rx, ry = x // 32, y // 32
-  print('An entity: {}'.format(world.get_entities(rx, ry)[0]))
-```
-
-
-Extracting `.pak` files
------------------------
+### Extracting `.pak` files
 
 You can use the `export.py` script to extract all the files in a `.pak`
 (or `.modpak`) file.
@@ -62,9 +29,7 @@ Example:
 ./export.py -d assets /Starbound/assets/packed.pak
 ```
 
-
-Getting world data
-------------------
+### Getting world info
 
 If you want information about a region in a world (planet or ship), you
 can use the `region.py` script. For example, here's how to pretty print
@@ -127,8 +92,43 @@ Outputting region: (69, 27)
 ```
 
 
-File formats
-------------
+Using the Python package
+------------------------
 
-Check out [FORMATS.md](./FORMATS.md) for technical information on
-Starbound's file formats.
+The Python package lets you read data from Starbound's various file
+formats. The classes and functions expect file objects to read from.
+
+You can use the `mmap` package to improve performance for large files,
+such as `packed.pak` and world files.
+
+
+### Example: Reading a player file
+
+Here's how to print the name of a player.
+
+```python
+import starbound
+with open('player/11475cedd80ead373c19a91de2e2c4d3.player') as fh:
+  player = starbound.read_sbvj01(fh)
+  print('Hello, {}!'.format(player.data['identity']['name']))
+```
+
+
+### Example: World files
+
+In the following example the `mmap` package is used for faster access.
+
+```python
+import mmap
+import starbound
+with open('universe/43619853_198908799_-9440367_6_3.world') as fh:
+  mm = mmap.mmap(fh.fileno(), 0, access=mmap.ACCESS_READ)
+  world = starbound.World(mm)
+  world.read_metadata()
+  print('World size: {}×{}'.format(world.width, world.height))
+  x, y = world.metadata['playerStart']
+  print('Player spawns at ({}, {})'.format(x, y))
+  # Regions consist of 32×32 tiles.
+  rx, ry = x // 32, y // 32
+  print('An entity: {}'.format(world.get_entities(rx, ry)[0]))
+```
