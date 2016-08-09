@@ -21,7 +21,7 @@ except:
 class CelestialChunks(BTreeDB5):
     def get(self, key):
         key = hashlib.sha256(key.encode('utf-8')).digest()
-        data = super(CelestialChunks, self).get(data)
+        data = super(CelestialChunks, self).get(key)
         data = zlib.decompress(data)
         stream = io.BytesIO(data)
         return read_versioned_json(stream)
