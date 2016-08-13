@@ -31,9 +31,6 @@ class CelestialChunks(BTreeDB5):
         assert self.name == 'Celestial2', 'Invalid header'
 
 
-VersionedJSON = namedtuple('VersionedJSON', ['name', 'version', 'data'])
-
-
 Tile = namedtuple('Tile', [
     'foreground_material',
     'foreground_hue_shift',
@@ -55,6 +52,9 @@ Tile = namedtuple('Tile', [
     'biome_2',
     'indestructible',
 ])
+
+
+VersionedJSON = namedtuple('VersionedJSON', ['name', 'version', 'data'])
 
 
 class World(BTreeDB5):
