@@ -106,3 +106,14 @@ def read_versioned_json(stream):
     version, = struct.unpack('>i', stream.read(4))
     data = sbon.read_dynamic(stream)
     return VersionedJSON(name, version, data)
+
+
+def write_sbvj01(stream, vj):
+    stream.write(b'SBVJ01')
+    write_versioned_json(stream, vj)
+
+
+def write_versioned_json(stream, vj):
+    sbon.write_string(stream, vj.name)
+    stream.write(struct.pack('>bi', 1, vj.version))
+    sbon.write_dynamic(stream, vj.data)
