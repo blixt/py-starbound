@@ -5,6 +5,7 @@ import mmap
 import optparse
 import os
 import sys
+import time
 
 import starbound
 
@@ -20,6 +21,7 @@ def main():
     package_path = arguments[0]
     base = options.path if options.path else '.'
     # Load the assets file and its index.
+    start = time.clock()
     with open(package_path, 'rb') as fh:
         mm = mmap.mmap(fh.fileno(), 0, access=mmap.ACCESS_READ)
         package = starbound.SBAsset6(mm)
@@ -49,8 +51,9 @@ def main():
             if not num_files % percentage_count:
                 sys.stdout.write('.')
                 sys.stdout.flush()
+    elapsed = time.clock() - start
     print('')
-    print('Extracted {} files.'.format(num_files))
+    print('Extracted {} files in {:.1f} seconds.'.format(num_files, elapsed))
 
 
 if __name__ == '__main__':
