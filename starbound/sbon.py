@@ -1,13 +1,20 @@
 # -*- coding: utf-8 -*-
 
 import struct
+import sys
 
 
-# Override range with xrange when running Python 2.x.
-try:
+if sys.version >= '3':
+    _int_type = int
+    _str_type = str
+    def _byte(x):
+        return bytes((x,))
+else:
+    _int_type = (int, long)
+    _str_type = basestring
     range = xrange
-except:
-    pass
+    def _byte(x):
+        return chr(x)
 
 
 def read_bytes(stream):
@@ -20,9 +27,9 @@ def read_dynamic(stream):
     if type_id == 1:
         return None
     elif type_id == 2:
-        fmt = '>d'
+        return struct.unpack('>d', stream.read(8))[0]
     elif type_id == 3:
-        fmt = '?'
+        return stream.read(1) != b'\0'
     elif type_id == 4:
         return read_varint_signed(stream)
     elif type_id == 5:
@@ -31,10 +38,7 @@ def read_dynamic(stream):
         return read_list(stream)
     elif type_id == 7:
         return read_map(stream)
-    else:
-        raise ValueError('Unknown dynamic type 0x%02X' % type_id)
-    # Anything that passes through is assumed to have set a format to unpack.
-    return struct.unpack(fmt, stream.read(struct.calcsize(fmt)))[0]
+    raise ValueError('Unknown dynamic type 0x%02X' % type_id)
 
 
 def read_list(stream):
@@ -77,26 +81,60 @@ def read_varint_signed(stream):
         return value >> 1
 
 
-def write_bytes(stream, bytes):
-    write_varint(stream, len(bytes))
-    stream.write(bytes)
+def write_bytes(stream, value):
+    write_varint(stream, len(value))
+    stream.write(value)
+
+
+def write_dynamic(stream, value):
+    if value is None:
+        stream.write(b'\x01')
+    elif isinstance(value, float):
+        stream.write(b'\x02')
+        stream.write(struct.pack('>d', value))
+    elif isinstance(value, bool):
+        stream.write(b'\x03\x01' if value else b'\x03\x00')
+    elif isinstance(value, _int_type):
+        stream.write(b'\x04')
+        write_varint_signed(stream, value)
+    elif isinstance(value, _str_type):
+        stream.write(b'\x05')
+        write_string(stream, value)
+    elif isinstance(value, list):
+        stream.write(b'\x06')
+        write_list(stream, value)
+    elif isinstance(value, dict):
+        stream.write(b'\x07')
+        write_map(stream, value)
+    else:
+        raise ValueError('Cannot write value %r' % (value,))
+
+
+def write_list(stream, value):
+    write_varint(stream, len(value))
+    for v in value:
+        write_dynamic(stream, v)
+
+
+def write_map(stream, value):
+    write_varint(stream, len(value))
+    for k, v in value.iteritems():
+        write_string(stream, k)
+        write_dynamic(stream, v)
+
+
+def write_string(stream, value):
+    write_bytes(stream, value.encode('utf-8'))
 
 
 def write_varint(stream, value):
-    if value == 0:
-        stream.write(b'\x00')
-        return
-    pieces = []
+    buf = _byte(value & 0b01111111)
+    value >>= 7
     while value:
-        x, value = value & 0b01111111, value >> 7
-        if len(pieces):
-            x |= 0b10000000
-        pieces.insert(0, x)
-        if len(pieces) > 4096:
-            raise ValueError('Number too large')
-    stream.write(struct.pack('%dB' % len(pieces), *pieces))
+        buf = _byte(value & 0b01111111 | 0b10000000) + buf
+        value >>= 7
+    stream.write(buf)
 
 
 def write_varint_signed(stream, value):
-    has_sign = 1 if value < 0 else 0
-    write_varint(stream, value << 1 | has_sign)
+    write_varint(stream, (-value << 1 | 1) if value < 0 else (value << 1))
