@@ -9,12 +9,16 @@ if sys.version >= '3':
     _str_type = str
     def _byte(x):
         return bytes((x,))
+    def _items(d):
+        return d.items()
 else:
     _int_type = (int, long)
     _str_type = basestring
     range = xrange
     def _byte(x):
         return chr(x)
+    def _items(d):
+        return d.iteritems()
 
 
 def read_bytes(stream):
@@ -118,7 +122,7 @@ def write_list(stream, value):
 
 def write_map(stream, value):
     write_varint(stream, len(value))
-    for k, v in value.iteritems():
+    for k, v in _items(value):
         write_string(stream, k)
         write_dynamic(stream, v)
 
