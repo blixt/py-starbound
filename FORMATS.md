@@ -3,12 +3,21 @@ Starbound data formats
 
 This document is intended to describe Starbound's various data structures.
 
+* [File formats](#file-formats)
+* [SBON](#sbon)
+* [Celestial data](#celestial-data)
+* [World data](#world-data)
+
 
 File formats
 ------------
 
 Starbound uses regular JSON and Lua files for some things, but this
 document will only focus on the custom file formats.
+
+* [BTreeDB5](#btreedb5)
+* [SBAsset6](#sbasset6)
+* [SBVJ01](#sbvj01)
 
 ### BTreeDB5
 
@@ -119,8 +128,11 @@ The file structure is simply the string `"SBVJ01"` followed by a single
 versioned JSON object (see below).
 
 
-"SBON" – Starbound Binary Object Notation
------------------------------------------
+SBON
+----
+
+(I'm calling this "Starbound Binary Object Notation", but don't know
+what the Starbound developers call it internally.)
 
 This format is similar to other binary formats for JSON (e.g., BSON).
 SBON is used in most file formats to represent complex data such as
@@ -164,6 +176,9 @@ Celestial data
 
 Celestial files are BTreeDB5 databases that contain generated
 information about the universe.
+
+Little is currently known about this format as the keys are hashes of
+some key that has not yet been reverse engineered.
 
 
 World data
