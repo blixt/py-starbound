@@ -101,34 +101,77 @@ formats. The classes and functions expect file objects to read from.
 You can use the `mmap` package to improve performance for large files,
 such as `packed.pak` and world files.
 
-
 ### Example: Reading a player file
 
-Here's how to print the name of a player.
+Here's how to print the name of a player:
 
 ```python
 import starbound
-with open('player/11475cedd80ead373c19a91de2e2c4d3.player') as fh:
+
+with open('player/11475cedd80ead373c19a91de2e2c4d3.player', 'rb') as fh:
   player = starbound.read_sbvj01(fh)
   print('Hello, {}!'.format(player.data['identity']['name']))
 ```
 
-
 ### Example: World files
 
-In the following example the `mmap` package is used for faster access.
+In the following example the `mmap` package is used for faster access:
 
 ```python
-import mmap
-import starbound
-with open('universe/43619853_198908799_-9440367_6_3.world') as fh:
+import mmap, starbound
+
+with open('universe/43619853_198908799_-9440367_6_3.world', 'rb') as fh:
   mm = mmap.mmap(fh.fileno(), 0, access=mmap.ACCESS_READ)
+
   world = starbound.World(mm)
   world.read_metadata()
+
   print('World size: {}×{}'.format(world.width, world.height))
   x, y = world.metadata['playerStart']
   print('Player spawns at ({}, {})'.format(x, y))
+
   # Regions consist of 32×32 tiles.
   rx, ry = x // 32, y // 32
   print('An entity: {}'.format(world.get_entities(rx, ry)[0]))
+```
+
+### Example: Getting assets from `packed.pak`
+
+Starbound keeps most of the assets (images, configuration files,
+dungeons, etc.) in a file called `packed.pak`. This file uses a special
+format which can be read by py-starbound, as you can see below.
+
+```python
+import mmap, starbound
+
+with open('assets/packed.pak', 'rb') as fh:
+  mm = mmap.mmap(fh.fileno(), 0, access=mmap.ACCESS_READ)
+  package = starbound.SBAsset6(mm)
+
+  # Print the contents of a file in the asset package.
+  print(package.get('/lighting.config'))
+```
+
+### Example: Modifying Starbound files
+
+Currently, only the SBVJ01 file format can be written by py-starbound.
+This means player files, client context files, and the statistics file.
+
+Here's an example that renames a player (WARNING: Always back up files
+before writing to them!):
+
+```python
+import starbound
+
+with open('player/420ed511f83b3760dead42a173339b3e.player', 'r+b') as fh:
+  player = starbound.read_sbvj01(fh)
+  old_name = player.data['identity']['name']
+  new_name = player.data['identity']['name'] = old_name.encode('rot13')
+  print('Updating name: {} -> {}'.format(old_name, new_name))
+  # Go back to the beginning of the file.
+  fh.seek(0)
+  # Overwrite the current contents in the file.
+  starbound.write_sbvj01(fh, player)
+  # If the file got shorter, truncate away the remaining content.
+  fh.truncate()
 ```
