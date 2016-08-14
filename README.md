@@ -142,11 +142,10 @@ dungeons, etc.) in a file called `packed.pak`. This file uses a special
 format which can be read by py-starbound, as you can see below.
 
 ```python
-import mmap, starbound
+import starbound
 
 with open('assets/packed.pak', 'rb') as fh:
-  mm = mmap.mmap(fh.fileno(), 0, access=mmap.ACCESS_READ)
-  package = starbound.SBAsset6(mm)
+  package = starbound.SBAsset6(fh)
 
   # Print the contents of a file in the asset package.
   print(package.get('/lighting.config'))
@@ -165,12 +164,14 @@ import starbound
 
 with open('player/420ed511f83b3760dead42a173339b3e.player', 'r+b') as fh:
   player = starbound.read_sbvj01(fh)
+
   old_name = player.data['identity']['name']
-  new_name = player.data['identity']['name'] = old_name.encode('rot13')
+  new_name = old_name.encode('rot13')
+  player.data['identity']['name'] = new_name
   print('Updating name: {} -> {}'.format(old_name, new_name))
-  # Go back to the beginning of the file.
+
+  # Go back to the beginning of the file and write the updated data.
   fh.seek(0)
-  # Overwrite the current contents in the file.
   starbound.write_sbvj01(fh, player)
   # If the file got shorter, truncate away the remaining content.
   fh.truncate()
