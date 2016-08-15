@@ -140,7 +140,7 @@ metadata and entities.
 
 Data types:
 
-* Variable length integer
+* Variable length integer (also known as [VQL][vql])
 * Bytes (varint for length + the bytes)
 * String (bytes with UTF-8 encoding)
 * List (varint for count, dynamic for values)
@@ -273,3 +273,6 @@ region at (X, Y). Each entity is a versioned JSON object.
 
 The data, once inflated, consists of an SBON varint for the count and
 then the versioned JSON objects, one after the other.
+
+
+[vql]: https://en.wikipedia.org/wiki/Variable-length_quantity
