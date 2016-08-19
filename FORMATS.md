@@ -35,7 +35,7 @@ The header consists of 512 bytes, representing the following fields:
 | 3       | `char[16]`  | The name of the database (null padded)
 | 4       | `int32`     | Byte size of index keys
 | 5       | `bool`      | Whether to swap root nodes
-| 6       | `int32`     | Uncertain; possibly the highest block index
+| 6       | `int32`     | Block count
 | –       | `byte[3]`   | Unknown
 | 7       | `int32`     | Unknown (maybe statistics?)
 | –       | `byte`      | Unknown
@@ -47,6 +47,10 @@ The header consists of 512 bytes, representing the following fields:
 | –       | `byte`      | Unknown
 | 11      | `int32`     | Alternate root block index
 | –       | `byte[446]` | Unused bytes
+
+In the BTreeDB4 format there was also a "free block is dirty" boolean
+which is not accounted for above. It may be one of the "Unknown"
+values.
 
 #### Blocks
 
