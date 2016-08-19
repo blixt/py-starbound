@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
 import hashlib
 import json
 import mmap
@@ -23,9 +25,6 @@ def main():
     p.add_option('-e', '--entities', dest='entities',
                  action='store_true', default=False,
                  help='Output entity data instead of tile data')
-    p.add_option('-r', '--raw', dest='raw',
-                 action='store_true', default=False,
-                 help='Output data in a raw format')
     p.add_option('-v', '--value-index', dest='value_index',
                  type=int, default=0,
                  help='The value in the tile data to output')
@@ -48,38 +47,29 @@ def main():
         # Default coordinates to spawn point.
         if x is None or y is None:
             x, y = int(spawn[0] / 32), int(spawn[1] / 32)
-        # Only print the pure data if --raw is specified.
-        if options.raw:
-            if options.entities:
-                print(json.dumps(world.get_entities(x, y),
-                                 indent=2,
-                                 separators=(',', ': '),
-                                 sort_keys=True))
-            else:
-                print(world.get(1, x, y))
-            return
         # Print world metadata.
         print('World size:        {}×{}'.format(world.width, world.height))
+        print('Metadata version:  {}'.format(world.metadata_version))
         if spawn:
             print('Spawn point:       ({}, {})'.format(spawn[0], spawn[1]))
-        print('Outputting region: ({}, {})'.format(x, y))
+        print('')
         # Print either entities or tile data depending on options.
         if options.entities:
-            data = world.get_entities(x, y)
-            print('')
-            print(json.dumps(data, indent=2, separators=(',', ': '), sort_keys=True))
+            entities = [{'type': e.name, 'version': e.version, 'data': e.data}
+                        for e in world.get_entities(x, y)]
+            print('Entities in region ({}, {}):'.format(x, y))
+            print(json.dumps(entities, indent=2, separators=(',', ': '), sort_keys=True))
         else:
             try:
-                print('Outputting value:  %s' % starbound.Tile._fields[options.value_index])
+                print('Tiles ({}) in region ({}, {}):'.format(
+                    starbound.Tile._fields[options.value_index], x, y))
             except:
-                print('')
                 print('Unsupported value index! Pick one of these indices:')
                 index = 0
                 for field in starbound.Tile._fields:
                     print('> {} ({})'.format(index, field))
                     index += 1
             else:
-                print('')
                 pretty_print_tiles(world, x, y, options.value_index)
 
 
