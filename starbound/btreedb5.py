@@ -31,7 +31,7 @@ class BTreeDB5(object):
             self.read_header()
         assert len(key) == self.key_size, 'Invalid key length'
         # Traverse the B-tree until we reach a leaf.
-        offset = HEADER_SIZE + self.block_size * self.root
+        offset = HEADER_SIZE + self.block_size * self.root_block
         entry_size = self.key_size + 4
         s = self.stream
         while True:
@@ -73,13 +73,15 @@ class BTreeDB5(object):
         self.block_size = data[1]
         self.name = data[2].rstrip(b'\0').decode('utf-8')
         self.key_size = data[3]
-        self.root, self.other_root = data[7], data[10]
+        self.block_count = data[5]
+        self.free_block = data[8]
+        self.root_block, self.root_block_2 = data[7], data[10]
         self.use_other_root = False
         if data[4]:
             self.swap_root()
 
     def swap_root(self):
-        self.root, self.other_root = self.other_root, self.root
+        self.root_block, self.root_block_2 = self.root_block_2, self.root_block
         self.use_other_root = not self.use_other_root
 
 
