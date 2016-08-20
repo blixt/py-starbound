@@ -14,7 +14,7 @@ except:
     pass
 
 
-HEADER = '>8si16si?ixxxixixixxxixi446x'
+HEADER = '>8si16si?ixxxixi?ixxxixi?445x'
 HEADER_SIZE = struct.calcsize(HEADER)
 # Constants for the different block types.
 FREE = b'FF'
@@ -73,15 +73,26 @@ class BTreeDB5(object):
         self.block_size = data[1]
         self.name = data[2].rstrip(b'\0').decode('utf-8')
         self.key_size = data[3]
-        self.block_count = data[5]
-        self.free_block = data[8]
-        self.root_block, self.root_block_2 = data[7], data[10]
-        self.use_other_root = False
-        if data[4]:
-            self.swap_root()
+        self.use_other_root = data[4]
+        self.free_block_1 = data[5]
+        self.root_block_1 = data[7]
+        self.root_block_1_is_leaf = data[8]
+        self.free_block_2 = data[9]
+        self.root_block_2 = data[11]
+        self.root_block_2_is_leaf = data[12]
+
+    @property
+    def root_block(self):
+        return self.root_block_2 if self.use_other_root else self.root_block_1
+
+    @property
+    def root_block_is_leaf(self):
+        if self.use_other_root:
+            return self.root_block_2_is_leaf
+        else:
+            return self.root_block_1_is_leaf
 
     def swap_root(self):
-        self.root_block, self.root_block_2 = self.root_block_2, self.root_block
         self.use_other_root = not self.use_other_root
 
 
