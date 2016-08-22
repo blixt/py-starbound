@@ -99,7 +99,7 @@ def main():
     regions_x = int(math.ceil(size[0] / 32))
     regions_y = int(math.ceil(size[1] / 32))
     print('attempting to recover {}×{} regions...'.format(regions_x, regions_y))
-    block_count = (file_size - starbound.btreedb5.HEADER_SIZE) / world.block_size
+    block_count = int((file_size - starbound.btreedb5.HEADER_SIZE) / world.block_size)
     blocks_per_percent = block_count // 100 + 1
     nodes_recovered = 0
     percent = 0
