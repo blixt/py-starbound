@@ -14,7 +14,7 @@ except:
     pass
 
 
-HEADER = '>8si16si?ixxxixi?ixxxixi?445x'
+HEADER = '>8si16si?ixxxxii?ixxxxii?445x'
 HEADER_SIZE = struct.calcsize(HEADER)
 # Constants for the different block types.
 FREE = b'FF'
@@ -75,9 +75,11 @@ class BTreeDB5(object):
         self.key_size = data[3]
         self.use_other_root = data[4]
         self.free_block_1 = data[5]
+        self.free_block_1_end = data[6]
         self.root_block_1 = data[7]
         self.root_block_1_is_leaf = data[8]
         self.free_block_2 = data[9]
+        self.free_block_2_end = data[10]
         self.root_block_2 = data[11]
         self.root_block_2_is_leaf = data[12]
 

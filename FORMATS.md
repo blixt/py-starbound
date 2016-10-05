@@ -36,15 +36,13 @@ The header consists of 512 bytes, representing the following fields:
 | 4       | `int32`     | Byte size of index keys
 | 5       | `bool`      | Whether to use root node #2 instead
 | 6       | `int32`     | Free node #1 block index
-| –       | `byte[3]`   | Unknown
-| 7       | `int32`     | Unknown (maybe statistics?)
-| –       | `byte`      | Unknown
+| –       | `byte[4]`   | Unknown
+| 7       | `int32`     | Offset in file of end of free block #1
 | 8       | `int32`     | Root node #1 block index
 | 9       | `boolean`   | Whether root node #1 is a leaf
 | 10      | `int32`     | Free node #2 block index
-| –       | `byte[3]`   | Unknown
-| 11      | `int32`     | Unknown (maybe statistics?)
-| –       | `byte`      | Unknown
+| –       | `byte[4]`   | Unknown
+| 11      | `int32`     | Offset in file of end of free block #2
 | 12      | `int32`     | Root node #2 block index
 | 13      | `boolean`   | Whether root node #2 is a leaf
 | –       | `byte[445]` | Unused bytes
