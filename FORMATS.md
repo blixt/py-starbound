@@ -236,6 +236,7 @@ A single tile is made up of 30 bytes of binary data:
 | 17       | 28    | `uint8`  | "Biome"⁴
 | 18       | 29    | `uint8`  | "Environment Biome"⁴
 | 19       | 30    | `bool`   | Indestructible (tree/vine base)
+| 20       | 31    | `unknown`| Unknown?
 
 ¹ Refers to a material by its id. Additional constants:
 
