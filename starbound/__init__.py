@@ -50,8 +50,7 @@ Tile = namedtuple('Tile', [
     'dungeon_id',
     'biome',
     'biome_2',
-    'indestructible',
-    'unknown'
+    'indestructible'
 ])
 
 
