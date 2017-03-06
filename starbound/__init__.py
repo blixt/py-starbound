@@ -50,7 +50,7 @@ Tile = namedtuple('Tile', [
     'dungeon_id',
     'biome',
     'biome_2',
-    'indestructible',
+    'indestructible'
 ])
 
 
@@ -90,7 +90,7 @@ class World(BTreeDB5):
 
     @classmethod
     def read_tile(cls, stream):
-        values = struct.unpack('>hBBhBhBBhBBffBBHBB?', stream.read(30))
+        values = struct.unpack('>hBBhBhBBhBBffBBHBB?x', stream.read(31))
         return Tile(*values)
 
 
