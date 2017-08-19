@@ -141,7 +141,7 @@ This format is similar to other binary formats for JSON (e.g., BSON).
 SBON is used in most file formats to represent complex data such as
 metadata and entities.
 
-Data types:
+### Data types
 
 * Variable length integer (also known as [VQL][vql])
 * Bytes (varint for length + the bytes)
@@ -156,6 +156,16 @@ Data types:
   * `0x05`: String
   * `0x06`: List
   * `0x07`: Map
+
+#### Varint
+
+A variable length (in bytes) integer. As long as the most significant bit is set read the next byte and concatenate its 7 other bits with the 7 bits of the previous bytes. The resulting string of bits is the binary representation of the number.
+
+The purposes of this data type is to allow (common) lower values 0...127 to only use up one byte, 128...16383 two bytes, and so on.
+
+#### Signed varint
+
+A signed varint is just a regular varint, except that the least significant bit (the very last bit in the data stream) is used to represent the sign of the number. If the bit is 1, the number should be considered negative and also have one subtracted from its value (because there is no negative 0). If the bit is 0, the number is positive. In both cases, the least significant bit should not be considered part of the number.
 
 ### Versioned JSON
 
