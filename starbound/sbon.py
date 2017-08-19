@@ -141,4 +141,4 @@ def write_varint(stream, value):
 
 
 def write_varint_signed(stream, value):
-    write_varint(stream, (-value << 1 | 1) if value < 0 else (value << 1))
+    write_varint(stream, (-(value + 1) << 1 | 1) if value < 0 else (value << 1))
