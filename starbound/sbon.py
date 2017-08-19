@@ -80,7 +80,7 @@ def read_varint_signed(stream):
     value = read_varint(stream)
     # Least significant bit represents the sign.
     if value & 1:
-        return -(value >> 1)
+        return -(value >> 1) - 1
     else:
         return value >> 1
 
