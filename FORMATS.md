@@ -150,16 +150,16 @@ metadata and entities.
 * Map (varint for count, string/dynamic pairs for entries)
 * Dynamic (byte for type + value)
   * `0x01`: Nil value
-  * `0x02`: 64-bit float
+  * `0x02`: Double-precision float (a.k.a. `double`)
   * `0x03`: Boolean
-  * `0x04`: Signed varint
+  * `0x04`: Signed varint (see below)
   * `0x05`: String
   * `0x06`: List
   * `0x07`: Map
 
 #### Varint
 
-A variable length (in bytes) integer. As long as the most significant bit is set read the next byte and concatenate its 7 other bits with the 7 bits of the previous bytes. The resulting string of bits is the binary representation of the number.
+A variable length (in bytes) integer, also known as [VLQ](https://en.wikipedia.org/wiki/Variable-length_quantity). As long as the most significant bit is set read the next byte and concatenate its 7 other bits with the 7 bits of the previous bytes. The resulting string of bits is the binary representation of the number.
 
 The purposes of this data type is to allow (common) lower values 0...127 to only use up one byte, 128...16383 two bytes, and so on.
 
