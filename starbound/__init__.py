@@ -101,9 +101,11 @@ def read_sbvj01(stream):
 
 def read_versioned_json(stream):
     name = sbon.read_string(stream)
-    # Not sure what this part is.
-    assert stream.read(1) == b'\x01'
-    version, = struct.unpack('>i', stream.read(4))
+    # The object only has a version if the following bool is true.
+    if stream.read(1) == b'\x00'
+        version = None
+    else:
+        version, = struct.unpack('>i', stream.read(4))
     data = sbon.read_dynamic(stream)
     return VersionedJSON(name, version, data)
 
@@ -115,5 +117,8 @@ def write_sbvj01(stream, vj):
 
 def write_versioned_json(stream, vj):
     sbon.write_string(stream, vj.name)
-    stream.write(struct.pack('>bi', 1, vj.version))
+    if vj.version is None:
+        stream.write(struct.pack('>b', 0))
+    else:
+        stream.write(struct.pack('>bi', 1, vj.version))
     sbon.write_dynamic(stream, vj.data)

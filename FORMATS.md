@@ -176,12 +176,12 @@ version.
 Most complex data structures are represented as versioned JSON and may
 have Lua scripts that upgrade older versions to the current one.
 
-| Field   | Type           | Description
-| ------- | -------------- | -----------
-| Name    | SBON string    | The name or type of the data structure.
-| ?       | Byte           | Always `0x01`. Possibly for future use.
-| Version | 32-bit integer | The version of the data structure.
-| Data    | SBON dynamic   | The data itself, usually a map.
+| Field         | Type         | Description
+| ------------- | ------------ | -----------
+| Name          | SBON string  | The name or type of the data structure.
+| Is versioned? | `bool`       | Flag indicating that there’s a version.
+| Version       | `int32`      | Version (only if previous field is `true`).
+| Data          | SBON dynamic | The data itself, usually a map.
 
 
 Celestial data
