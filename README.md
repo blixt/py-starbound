@@ -176,3 +176,9 @@ with open('player/420ed511f83b3760dead42a173339b3e.player', 'r+b') as fh:
   # If the file got shorter, truncate away the remaining content.
   fh.truncate()
 ```
+
+
+License
+-------
+
+[MIT License](./LICENSE)
