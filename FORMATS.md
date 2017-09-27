@@ -113,10 +113,9 @@ metadata can be read. Seek to that point in the file and find:
 | 1       | `char[5]`   | The string "INDEX"
 | 2       | SBON map    | Information about the file
 | 3       | SBON varint | Number of files in the index
-| 4 + 4n  | `byte`      | Length of path (next field)
-| 5 + 4n  | `string`    | UTF-8 encoded string
-| 6 + 4n  | `uint64`    | Offset where file starts
-| 7 + 4n  | `uint64`    | Length of file
+| 4 + 3n  | SBON string | SBON UTF-8 encoded string
+| 5 + 3n  | `uint64`    | Offset where file starts
+| 6 + 3n  | `uint64`    | Length of file
 
 Once the index has been parsed into memory, it can be used to seek to
 various files in the SBAsset6 file.
