@@ -50,7 +50,6 @@ class SBAsset6(object):
         self.stream.seek(self.index_offset)
         self.index = {}
         for i in range(self.file_count):
-            path_len, = struct.unpack('>B', self.stream.read(1))
-            path = self.stream.read(path_len).decode('utf-8')
+            path = sbon.read_string(self.stream)
             offset, length = struct.unpack('>QQ', self.stream.read(16))
             self.index[path] = IndexEntry(offset, length)
