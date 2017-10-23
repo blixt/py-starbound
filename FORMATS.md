@@ -142,7 +142,7 @@ metadata and entities.
 
 ### Data types
 
-* Variable length integer (also known as [VQL][vql])
+* Variable length integer (also known as [VLQ][vlq])
 * Bytes (varint for length + the bytes)
 * String (bytes with UTF-8 encoding)
 * List (varint for count, dynamic for values)
@@ -158,7 +158,7 @@ metadata and entities.
 
 #### Varint
 
-A variable length (in bytes) integer, also known as [VLQ](https://en.wikipedia.org/wiki/Variable-length_quantity). As long as the most significant bit is set read the next byte and concatenate its 7 other bits with the 7 bits of the previous bytes. The resulting string of bits is the binary representation of the number.
+A variable length (in bytes) integer, also known as [VLQ][vlq]. As long as the most significant bit is set read the next byte and concatenate its 7 other bits with the 7 bits of the previous bytes. The resulting string of bits is the binary representation of the number.
 
 The purposes of this data type is to allow (common) lower values 0...127 to only use up one byte, 128...16383 two bytes, and so on.
 
@@ -288,4 +288,4 @@ The data, once inflated, consists of an SBON varint for the count and
 then the versioned JSON objects, one after the other.
 
 
-[vql]: https://en.wikipedia.org/wiki/Variable-length_quantity
+[vlq]: https://en.wikipedia.org/wiki/Variable-length_quantity
