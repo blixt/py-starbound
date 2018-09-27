@@ -66,6 +66,41 @@ class BTreeDB5(object):
         # None of the keys in the leaf node matched.
         raise KeyError(binascii.hexlify(key))
 
+    def get_all_keys(self, start=None):
+        """
+        Returns a list of all valid keys starting at the given `start`
+        offset.  If `start` is `None`, we will start from the root of
+        the tree.
+        """
+        keys = []
+        s = self.stream
+        if not start:
+            start = HEADER_SIZE + self.block_size * self.root_block
+        s.seek(start)
+        block_type = s.read(2)
+        if block_type == LEAF:
+            reader = LeafReader(self)
+            num_keys = struct.unpack('>i', reader.read(4))[0]
+            for i in range(num_keys):
+                cur_key = reader.read(self.key_size)
+                keys.append(cur_key)
+                length = sbon.read_varint(reader)
+                reader.seek(length, 1)
+        elif block_type == INDEX:
+            (_, num_keys, first_child) = struct.unpack('>Bii', s.read(9))
+            children = [first_child]
+            for i in range(num_keys):
+                new_key = s.read(self.key_size)
+                next_child = struct.unpack('>i', s.read(4))[0]
+                children.append(next_child)
+            for child_loc in children:
+                keys.extend(self.get_all_keys(HEADER_SIZE + self.block_size * child_loc))
+        elif block_type == FREE:
+            pass
+        else:
+            raise Exception('Unhandled block type: {}'.format(block_type))
+        return keys
+
     def read_header(self):
         self.stream.seek(0)
         data = struct.unpack(HEADER, self.stream.read(HEADER_SIZE))
