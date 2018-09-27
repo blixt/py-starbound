@@ -27,7 +27,7 @@ class SBAsset6(object):
     def get(self, path):
         if not hasattr(self, 'index'):
             self.read_index()
-        offset, length = self.index[path]
+        offset, length = self.index[path.lower()]
         self.stream.seek(offset)
         return self.stream.read(length)
 
@@ -50,6 +50,6 @@ class SBAsset6(object):
         self.stream.seek(self.index_offset)
         self.index = {}
         for i in range(self.file_count):
-            path = sbon.read_string(self.stream)
+            path = sbon.read_string(self.stream).lower()
             offset, length = struct.unpack('>QQ', self.stream.read(16))
             self.index[path] = IndexEntry(offset, length)
