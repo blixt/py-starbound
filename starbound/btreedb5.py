@@ -68,11 +68,10 @@ class BTreeDB5(object):
 
     def get_all_keys(self, start=None):
         """
-        Returns a list of all valid keys starting at the given `start`
-        offset.  If `start` is `None`, we will start from the root of
-        the tree.
+        A generator which yields a list of all valid keys starting at the
+        given `start` offset.  If `start` is `None`, we will start from
+        the root of the tree.
         """
-        keys = []
         s = self.stream
         if not start:
             start = HEADER_SIZE + self.block_size * self.root_block
@@ -83,7 +82,7 @@ class BTreeDB5(object):
             num_keys = struct.unpack('>i', reader.read(4))[0]
             for i in range(num_keys):
                 cur_key = reader.read(self.key_size)
-                keys.append(cur_key)
+                yield cur_key
                 length = sbon.read_varint(reader)
                 reader.seek(length, 1)
         elif block_type == INDEX:
@@ -94,12 +93,12 @@ class BTreeDB5(object):
                 next_child = struct.unpack('>i', s.read(4))[0]
                 children.append(next_child)
             for child_loc in children:
-                keys.extend(self.get_all_keys(HEADER_SIZE + self.block_size * child_loc))
+                for key in self.get_all_keys(HEADER_SIZE + self.block_size * child_loc):
+                    yield key
         elif block_type == FREE:
             pass
         else:
             raise Exception('Unhandled block type: {}'.format(block_type))
-        return keys
 
     def read_header(self):
         self.stream.seek(0)
