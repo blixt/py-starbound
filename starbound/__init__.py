@@ -95,15 +95,13 @@ class World(BTreeDB5):
 
     def get_all_regions_with_tiles(self):
         """
-        Returns a set of (rx, ry) tuples which describes all regions for
-        which the world has tile data
+        Generator which yields a set of (rx, ry) tuples which describe
+        all regions for which the world has tile data
         """
-        regions = set()
         for key in self.get_all_keys():
             (layer, rx, ry) = struct.unpack('>BHH', key)
             if layer == 1:
-                regions.add((rx, ry))
-        return regions
+                yield (rx, ry)
 
 def read_sbvj01(stream):
     assert stream.read(6) == b'SBVJ01', 'Invalid header'
