@@ -80,18 +80,15 @@ class BTreeDB5(object):
         if block_type == LEAF:
             reader = LeafReader(self)
             num_keys = struct.unpack('>i', reader.read(4))[0]
-            node_keys = []
             for i in range(num_keys):
                 cur_key = reader.read(self.key_size)
-                node_keys.append(cur_key)
+                # We to a tell/seek here so that the user can read from
+                # the file while this loop is still being run
+                cur_pos = s.tell()
+                yield cur_key
+                s.seek(cur_pos)
                 length = sbon.read_varint(reader)
                 reader.seek(length, 1)
-            # We're yielding here rather than in the loop because LeafReader
-            # can only seek relatively, at the moment, and this way the user
-            # can `get` a node while looping without changing the stream
-            # position (and thus screwing up the loop)
-            for key in node_keys:
-                yield key
         elif block_type == INDEX:
             (_, num_keys, first_child) = struct.unpack('>Bii', s.read(9))
             children = [first_child]
