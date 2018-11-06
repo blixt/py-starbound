@@ -14,19 +14,50 @@ File & data formats
 Check out [FORMATS.md](./FORMATS.md) for technical information on
 Starbound's file and data formats.
 
+Installation
+------------
+
+py-starbound can be installed (either to your system, user account, or
+virtualenv) using the usual `setup.py` script:
+
+```bash
+$ python setup.py install
+```
+
+After installation, the commandline utilities (described below) should
+be available in your `$PATH` can can be run like any other app:
+
+```bash
+$ pystarbound-export [args]
+$ pystarbound-region [args]
+```
+
+If you wish to run these utilities from the git checkout itself (without
+installing first), the syntax is slightly more verbose:
+
+```bash
+$ python -m starbound.cliexport [args]
+$ python -m starbound.cliregion [args]
+```
 
 Command line utilities
 ----------------------
 
 ### Extracting `.pak` files
 
-You can use the `export.py` script to extract all the files in a `.pak`
+You can use the `pystarbound-export` script to extract all the files in a `.pak`
 (or `.modpak`) file.
 
 Example:
 
 ```bash
-./export.py -d assets /Starbound/assets/packed.pak
+$ pystarbound-export -d assets /Starbound/assets/packed.pak
+```
+
+Or from the git checkout directly:
+
+```bash
+$ python -m starbound.cliexport -d assets /Starbound/assets/packed.pak
 ```
 
 ### Getting world info
@@ -36,11 +67,17 @@ can use the `region.py` script. For example, here's how to pretty print
 the tiles in a region:
 
 ```bash
-$ ./region.py /Starbound/storage/universe/-382912739_-582615456_-73870035_3.world
+$ pystarbound-region /Starbound/storage/universe/-382912739_-582615456_-73870035_3.world
 World size:        3000×2000
 Spawn point:       (1224.0, 676.0)
 Outputting region: (37, 21)
 Outputting value:  foreground_material
+```
+
+Or from the git checkout directly:
+
+```bash
+$ python -m starbound.cliregion /Starbound/storage/universe/-382912739_-582615456_-73870035_3.world
 ```
 
 Outputs something like this:
@@ -54,7 +91,7 @@ You can also output specific tile values (instead of the foreground)
 using `--value-index` (or `-v`):
 
 ```bash
-$ ./region.py --value-index=12 /Starbound/storage/universe/-382912739_-582615456_-73870035_3.world 69 27
+$ pystarbound-region --value-index=12 /Starbound/storage/universe/-382912739_-582615456_-73870035_3.world 69 27
 World size:        3000×2000
 Spawn point:       (1224.0, 676.0)
 Outputting region: (69, 27)
@@ -68,7 +105,7 @@ Outputs something like this:
 And here's how to print the entities in a region:
 
 ```bash
-$ ./region.py --entities /Starbound/storage/universe/-382912739_-582615456_-73870035_3.world 69 27
+$ pystarbound-region --entities /Starbound/storage/universe/-382912739_-582615456_-73870035_3.world 69 27
 World size:        3000×2000
 Spawn point:       (1224.0, 676.0)
 Outputting region: (69, 27)
