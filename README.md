@@ -172,6 +172,50 @@ with open('universe/43619853_198908799_-9440367_6_3.world', 'rb') as fh:
   print('An entity: {}'.format(world.get_entities(rx, ry)[0]))
 ```
 
+### Example: Easy access to various world attributes
+
+A vast amount of information about loaded Worlds is available via the
+`metadata` attribute (as seen in the above section), but some
+information is also abstracted out into an `info` attribute.  For instance:
+
+```python
+  world = starbound.World(fh)
+  print('World Name: {}'.format(world.info.name))
+  print('World Description: {}'.format(world.info.description))
+  print('World Coordinates: ({}, {})'.format(world.info.coords[0], world.info.coords[1]))
+```
+
+The full list of attributes currently available are:
+
+Attribute | Description
+--- | ---
+`name` | The name of the world.  Will often include Starbound coloration markup.
+`description` | The internal description of the world.  Will often include text describing the tier of the world.
+`coords` | World coordinates, as a tuple.  The first two elements are the in-map coordinates of the system, the third is effectively random but describes the world itself.
+`size` | A tuple describing the width and height of the world.
+`world_biomes` | A set of the main biome IDs of the world, of the sort reported in the ingame navigation screen.
+`biomes` | The full set of biomes found on the world.  This should be a complete list, regardless of how much of the world has been explored.
+`dungeons` | The full set of dungeons found on the world.  This should be a complete list, regardless of how much of the world has been explored.
+
+### Example: Finding an entity by UUID/ID
+
+Many entities in Starbound, such as bookmarked flags, mech beacons,
+quest markers, etc, have UUIDs or IDs which the game can use to find
+where they are in the map without having to have all regions loaded.
+Player bookmark UUIDs can be found in the `player.data['universeMap']`
+dict, underneath `teleportBookmarks`.  One object type which does
+*not* use UUIDs is a level's mech beacon, which instead uses the magic
+string `mechbeacon`.  To find the ingame coordinates for a level's
+beacon (if one is present), this can be used:
+
+```python
+mechbeacon_coords = world.get_entity_uuid_coords('mechbeacon')
+if mechbeacon_coords:
+  print('Mech beacon found at ({}, {})'.format(*mechbeacon_coords))
+else:
+  print('No mech beacon in level!')
+```
+
 ### Example: Getting assets from `packed.pak`
 
 Starbound keeps most of the assets (images, configuration files,
