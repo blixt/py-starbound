@@ -80,7 +80,7 @@ class BTreeDB5(object):
         if block_type == LEAF:
             reader = LeafReader(self)
             num_keys = struct.unpack('>i', reader.read(4))[0]
-            for i in range(num_keys):
+            for _ in range(num_keys):
                 cur_key = reader.read(self.key_size)
                 # We to a tell/seek here so that the user can read from
                 # the file while this loop is still being run
@@ -92,8 +92,10 @@ class BTreeDB5(object):
         elif block_type == INDEX:
             (_, num_keys, first_child) = struct.unpack('>Bii', s.read(9))
             children = [first_child]
-            for i in range(num_keys):
-                new_key = s.read(self.key_size)
+            for _ in range(num_keys):
+                # Skip the key field.
+                _ = s.read(self.key_size)
+                # Read pointer to the child block.
                 next_child = struct.unpack('>i', s.read(4))[0]
                 children.append(next_child)
             for child_loc in children:

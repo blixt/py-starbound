@@ -1,5 +1,4 @@
-Starbound utilities for Python
-==============================
+# Starbound utilities for Python
 
 This is a library to parse Starbound's file formats which are used to
 store worlds, player characters, assets, etc.
@@ -7,15 +6,12 @@ store worlds, player characters, assets, etc.
 Feel free to contribute either via submitting pull requests or writing
 up issues with suggestions and/or bugs.
 
-
-File & data formats
--------------------
+## File & data formats
 
 Check out [FORMATS.md](./FORMATS.md) for technical information on
 Starbound's file and data formats.
 
-Installation
-------------
+## Installation
 
 py-starbound can be installed (either to your system, user account, or
 virtualenv) using the usual `setup.py` script:
@@ -40,8 +36,7 @@ $ python -m starbound.cliexport [args]
 $ python -m starbound.cliregion [args]
 ```
 
-Command line utilities
-----------------------
+## Command line utilities
 
 ### Extracting `.pak` files
 
@@ -128,9 +123,7 @@ Outputting region: (69, 27)
 ...
 ```
 
-
-Using the Python package
-------------------------
+## Using the Python package
 
 The Python package lets you read data from Starbound's various file
 formats. The classes and functions expect file objects to read from.
@@ -176,26 +169,26 @@ with open('universe/43619853_198908799_-9440367_6_3.world', 'rb') as fh:
 
 A vast amount of information about loaded Worlds is available via the
 `metadata` attribute (as seen in the above section), but some
-information is also abstracted out into an `info` attribute.  For instance:
+information is also abstracted out into an `info` attribute. For instance:
 
 ```python
-  world = starbound.World(fh)
-  print('World Name: {}'.format(world.info.name))
-  print('World Description: {}'.format(world.info.description))
-  print('World Coordinates: ({}, {})'.format(world.info.coords[0], world.info.coords[1]))
+world = starbound.World(fh)
+print('World Name: {}'.format(world.info.name))
+print('World Description: {}'.format(world.info.description))
+print('World Coordinates: ({}, {})'.format(world.info.coords[0], world.info.coords[1]))
 ```
 
 The full list of attributes currently available are:
 
-Attribute | Description
---- | ---
-`name` | The name of the world.  Will often include Starbound coloration markup.
-`description` | The internal description of the world.  Will often include text describing the tier of the world.
-`coords` | World coordinates, as a tuple.  The first two elements are the in-map coordinates of the system, the third is effectively random but describes the world itself.
-`size` | A tuple describing the width and height of the world.
-`world_biomes` | A set of the main biome IDs of the world, of the sort reported in the ingame navigation screen.
-`biomes` | The full set of biomes found on the world.  This should be a complete list, regardless of how much of the world has been explored.
-`dungeons` | The full set of dungeons found on the world.  This should be a complete list, regardless of how much of the world has been explored.
+| Attribute      | Description                                                                                                                                                     |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `biomes`       | The full set of biomes found on the world. This should be a complete list, regardless of how much of the world has been explored.                               |
+| `coords`       | World coordinates, as a tuple. The first two elements are the in-map coordinates of the system, the third is effectively random but describes the world itself. |
+| `description`  | The internal description of the world. Will often include text describing the tier of the world.                                                                |
+| `dungeons`     | The full set of dungeons found on the world. This should be a complete list, regardless of how much of the world has been explored.                             |
+| `name`         | The name of the world. Will often include Starbound coloration markup.                                                                                          |
+| `size`         | A tuple describing the width and height of the world.                                                                                                           |
+| `world_biomes` | A set of the main biome IDs of the world, of the sort reported in the ingame navigation screen.                                                                 |
 
 ### Example: Finding an entity by UUID/ID
 
@@ -203,9 +196,9 @@ Many entities in Starbound, such as bookmarked flags, mech beacons,
 quest markers, etc, have UUIDs or IDs which the game can use to find
 where they are in the map without having to have all regions loaded.
 Player bookmark UUIDs can be found in the `player.data['universeMap']`
-dict, underneath `teleportBookmarks`.  One object type which does
-*not* use UUIDs is a level's mech beacon, which instead uses the magic
-string `mechbeacon`.  To find the ingame coordinates for a level's
+dict, underneath `teleportBookmarks`. One object type which does
+_not_ use UUIDs is a level's mech beacon, which instead uses the magic
+string `mechbeacon`. To find the ingame coordinates for a level's
 beacon (if one is present), this can be used:
 
 ```python
@@ -258,8 +251,6 @@ with open('player/420ed511f83b3760dead42a173339b3e.player', 'r+b') as fh:
   fh.truncate()
 ```
 
-
-License
--------
+## License
 
 [MIT License](./LICENSE)

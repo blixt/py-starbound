@@ -296,7 +296,8 @@ def main():
     blocks.append(b'FF\xFF\xFF\xFF\xFF' + b'\x00' * (world.block_size - 6))
     print('writing all the data to disk...')
     with open(out_name, 'wb') as f:
-        header = struct.pack(starbound.btreedb5.HEADER,
+        header = struct.pack(
+            starbound.btreedb5.HEADER,
             b'BTreeDB5',
             world.block_size,
             world.name.encode('utf-8') + b'\x00' * (16 - len(world.name)),

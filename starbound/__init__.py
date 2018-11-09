@@ -40,6 +40,7 @@ class lazyproperty(object):
     def __set__(self, obj, value):
         setattr(obj, self.propname, value)
 
+
 class CelestialChunks(BTreeDB5):
     def get(self, key):
         key = hashlib.sha256(key.encode('utf-8')).digest()

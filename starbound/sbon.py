@@ -7,16 +7,20 @@ import sys
 if sys.version >= '3':
     _int_type = int
     _str_type = str
+
     def _byte(x):
         return bytes((x,))
+
     def _items(d):
         return d.items()
 else:
     _int_type = (int, long)
     _str_type = basestring
     range = xrange
+
     def _byte(x):
         return chr(x)
+
     def _items(d):
         return d.iteritems()
 
